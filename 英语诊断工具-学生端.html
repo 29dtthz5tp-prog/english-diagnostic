@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -188,8 +188,6 @@ body{
 
 .muted{font-size:.8em;color:var(--g500);text-align:center;margin-top:8px}
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -847,6 +845,7 @@ function closingMessage(type,std){
   };
   return msgs[type.id]||'你有自己的学习节奏和特点，这就是你最大的优势。保持好奇，保持尝试，你会看到自己的进步。';
 }
+} // close showResults
 // ==================== STORAGE (Google Apps Script) ====================
 
 async function getPreviousRecord(){
