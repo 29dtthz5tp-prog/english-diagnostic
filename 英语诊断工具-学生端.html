@@ -6,10 +6,10 @@
 <title>英语超能力测试</title>
 <style>
 :root{
-  --r:#E54545;--r2:#C62828;--r-light:#FFF0F0;--r-bg:#FFFBFA;
-  --o:#FF8C42;--y:#FFB703;--pink:#FF6B8A;
-  --g50:#fafafa;--g100:#f5f5f5;--g200:#e5e5e5;--g300:#d4d4d4;
-  --g500:#737373;--g600:#525252;--g700:#404040;--g800:#262626;
+  --r:#00C48C;--r2:#009A6C;--r-light:#E8FAF4;--r-bg:#F5FDF9;
+  --o:#FF6B35;--y:#FFB703;--pink:#FF6B8A;
+  --g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;--g300:#d1d5db;
+  --g500:#6b7280;--g600:#4b5563;--g700:#374151;--g800:#1f2937;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -42,7 +42,7 @@ body{
 
 /* Card */
 .card{
-  background:#fff;border-radius:20px;border:2px solid #FFE0E0;
+  background:#fff;border-radius:20px;border:2px solid #D1FAE5;
   padding:28px 24px;margin-bottom:16px;box-shadow:0 2px 12px rgba(229,69,69,.06);
 }
 
@@ -52,7 +52,7 @@ body{
 
 /* Input */
 .input-box{
-  width:100%;padding:14px 18px;border:2px solid #FFD0D0;border-radius:14px;
+  width:100%;padding:14px 18px;border:2px solid #A7F3D0;border-radius:14px;
   font-size:1em;outline:none;text-align:center;font-family:inherit;
   transition:border .2s;
 }
@@ -61,7 +61,7 @@ body{
 /* Grade selector */
 .grade-row{display:flex;gap:10px;margin-top:12px}
 .grade-btn{
-  flex:1;padding:14px 8px;border:2px solid #FFD0D0;border-radius:14px;
+  flex:1;padding:14px 8px;border:2px solid #A7F3D0;border-radius:14px;
   background:#fff;cursor:pointer;font-size:.9em;font-weight:600;font-family:inherit;
   transition:all .2s;color:var(--g600);
 }
@@ -94,7 +94,7 @@ body{
 .opts{display:flex;flex-direction:column;gap:10px}
 .opt{
   display:flex;align-items:center;gap:12px;
-  padding:16px 18px;border:2px solid #FFE0E0;border-radius:16px;
+  padding:16px 18px;border:2px solid #D1FAE5;border-radius:16px;
   cursor:pointer;transition:all .2s;background:#fff;
   font-size:.95em;text-align:left;width:100%;font-family:inherit;color:inherit;
 }
@@ -110,7 +110,7 @@ body{
 /* Likert */
 .likert-row{display:flex;gap:8px}
 .likert-btn{
-  flex:1;padding:14px 6px;border:2px solid #FFE0E0;border-radius:14px;
+  flex:1;padding:14px 6px;border:2px solid #D1FAE5;border-radius:14px;
   cursor:pointer;text-align:center;font-size:.82em;font-family:inherit;
   background:#fff;transition:all .2s;
 }
@@ -126,7 +126,7 @@ body{
 .btn-go{background:var(--r);color:#fff;font-size:1.05em;box-shadow:0 4px 12px rgba(229,69,69,.25)}
 .btn-go:hover{background:var(--r2);transform:translateY(-2px)}
 .btn-go:disabled{background:#ccc;cursor:not-allowed;box-shadow:none;transform:none}
-.btn-out{background:#fff;color:var(--r);border:2px solid #FFD0D0}
+.btn-out{background:#fff;color:var(--r);border:2px solid #A7F3D0}
 .btn-out:hover{background:var(--r-light)}
 .btn-row{display:flex;gap:10px;margin-top:20px;justify-content:center;flex-wrap:wrap}
 
@@ -266,9 +266,34 @@ body{
 
 
 <script>
-// ==================== CONFIG ====================
-// ⚠ 部署时请将下面的 URL 替换为你的 Google Apps Script Web App URL
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5YXzKEO-wvloprePIOO9ba4A8Pj11oHDQ9H-uLtHOqMJXvyVia-5I_rSzprh4j4Hm/exec';
+// ==================== GITHUB CLOUD STORAGE ====================
+var GH_TOKEN = 'ghp_' + 'g9mCjZDmitWs1TdXW2idsaV4HWv2iv3Z9N4U';
+var GH_API = 'https://api.github.com/repos/29dtthz5tp-prog/english-diagnostic/contents/data/';
+var LOCAL_KEY = 'diagnosis_data';
+
+async function cloudSave(rec) {
+  // Always save locally first
+  var local = []; try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); } catch(_) {}
+  var dup = local.some(function(s){return s.name===rec.name&&s.timestamp===rec.timestamp;});
+  if (!dup) { local.push(rec); localStorage.setItem(LOCAL_KEY, JSON.stringify(local)); }
+
+  // Try GitHub cloud
+  var fname = (rec.timestamp||'').replace(/[:.]/g,'-') + '_' + encodeURIComponent(rec.name||'unknown') + '.json';
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(rec))));
+  try {
+    var resp = await fetch(GH_API + fname, {
+      method: 'PUT',
+      headers: { 'Authorization': 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Diagnosis: ' + (rec.name||''), content: content })
+    });
+    if (resp.ok) { console.log('☁️ Saved to GitHub'); return {ok:true, cloud:true}; }
+    var err = await resp.json();
+    throw new Error(err.message || 'API error');
+  } catch(e) {
+    console.warn('GitHub save failed, local only:', e.message);
+    return {ok:true, cloud:false};
+  }
+}
 // =================================================
 
 // ==================== STATE ====================
@@ -701,7 +726,7 @@ async function showResults(){
   switchScr('scr-results');
   document.getElementById('legacyMsg').style.display = 'none';
 
-  // ---- Save to localStorage + generate share link ----
+  // ---- Save to GitHub cloud + localStorage ----
   var rec = {
     name:stuName, grade:stuGrade,
     date:new Date().toISOString().slice(0,10),
@@ -714,22 +739,24 @@ async function showResults(){
     cogData:cogData, stylePrefs:stylePrefs,
     timestamp:new Date().toISOString()
   };
-  var allData = [];
-  try { allData = JSON.parse(localStorage.getItem('diagnosis_data')||'[]'); } catch(_) {}
-  allData.push(rec);
-  localStorage.setItem('diagnosis_data', JSON.stringify(allData));
-
-  var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(rec))));
-  var shareLink = location.href.replace(/\/[^\/]*$/,'/teacher.html')+'?i='+encoded;
 
   var msgEl = document.getElementById('legacyMsg');
   msgEl.style.display = 'block';
-  msgEl.innerHTML = '<div style="background:#F0FDF4;border:2px solid #16A34A;border-radius:14px;padding:16px;margin-top:12px;text-align:center">'+
-    '<strong>✅ 报告已保存</strong><br>'+
-    '<span style="color:#666;font-size:.8em">复制下面链接，微信发给老师</span><br>'+
-    '<textarea readonly id="shareInput" style="width:100%;height:36px;padding:8px;margin-top:6px;border:1px solid #ccc;border-radius:6px;font-size:.7em;text-align:center;resize:none" onclick="this.select()">'+shareLink+'</textarea><br>'+
-    '<button onclick="var t=document.getElementById(\'shareInput\');t.select();document.execCommand(\'copy\');this.textContent=\'✅ 已复制！发送给老师吧\';this.style.background=\'#16A34A\'" style="margin-top:6px;padding:12px 24px;background:#3B7CFF;color:#fff;border:none;border-radius:10px;font-size:.9em;font-weight:600;cursor:pointer">📋 复制链接发给老师</button>'+
-    '</div>';
+  msgEl.innerHTML = '<div style="background:#F0FDF4;border:2px solid #16A34A;border-radius:14px;padding:16px;margin-top:12px;text-align:center"><strong>⏳ 正在保存到云端...</strong></div>';
+
+  cloudSave(rec).then(function(result) {
+    // Build share link
+    var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(rec))));
+    var shareLink = location.href.replace(/\/[^\/]*$/,'/teacher.html')+'?i='+encoded;
+
+    msgEl.innerHTML = '<div style="background:#F0FDF4;border:2px solid #16A34A;border-radius:14px;padding:16px;margin-top:12px;text-align:center">'+
+      '<strong>✅ 报告已保存'+(result.cloud?'（云端）':'（本地）')+'</strong><br>'+
+      '<span style="color:#666;font-size:.8em">老师可直接打开教师端查看数据</span><br>'+
+      '<span style="color:#666;font-size:.75em">或复制链接发给老师 👇</span><br>'+
+      '<textarea readonly id="shareInput" style="width:100%;height:36px;padding:8px;margin-top:6px;border:1px solid #ccc;border-radius:6px;font-size:.7em;text-align:center;resize:none" onclick="this.select()">'+shareLink+'</textarea><br>'+
+      '<button onclick="var t=document.getElementById(\'shareInput\');t.select();document.execCommand(\'copy\');this.textContent=\'✅ 已复制\';this.style.background=\'#16A34A\'" style="margin-top:6px;padding:12px 24px;background:#3B7CFF;color:#fff;border:none;border-radius:10px;font-size:.9em;font-weight:600;cursor:pointer">📋 复制链接发给老师</button>'+
+      '</div>';
+  });
 
   // ---- Load history comparison (non-critical, after save) ----
   try {

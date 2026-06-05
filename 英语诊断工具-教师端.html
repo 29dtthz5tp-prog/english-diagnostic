@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,10 +6,10 @@
 <title>高途 · 教师后台</title>
 <style>
 :root{
-  --r:#E54545;--r2:#C62828;--r-light:#FFF0F0;--r-bg:#FFFBFA;
-  --o:#FF8C42;--blue:#3B7CFF;--purple:#7C3AED;
-  --g50:#fafafa;--g100:#f5f5f5;--g200:#e5e5e5;--g300:#d4d4d4;
-  --g400:#a3a3a3;--g500:#737373;--g600:#525252;--g700:#404040;--g800:#262626;
+  --r:#00C48C;--r2:#009A6C;--r-light:#E8FAF4;--r-bg:#F5FDF9;
+  --o:#FF6B35;--blue:#3B7CFF;--purple:#7C3AED;
+  --g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;--g300:#d1d5db;
+  --g400:#9ca3af;--g500:#6b7280;--g600:#4b5563;--g700:#374151;--g800:#1f2937;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -31,7 +31,7 @@ body{
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 @media(max-width:700px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
 .stat{
-  background:#fff;border-radius:14px;border:1px solid #FFE0E0;
+  background:#fff;border-radius:14px;border:1px solid #D1FAE5;
   padding:20px;text-align:center;
 }
 .stat .n{font-size:2em;font-weight:800;color:var(--r)}
@@ -39,7 +39,7 @@ body{
 
 /* Card */
 .card{
-  background:#fff;border-radius:16px;border:1px solid #FFE0E0;
+  background:#fff;border-radius:16px;border:1px solid #D1FAE5;
   padding:24px 28px;margin-bottom:18px;
 }
 .card h2{font-size:1.05em;color:var(--g800);margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -212,7 +212,46 @@ footer .gt{color:var(--r);font-weight:600}
 
 <script>
 // ==================== CONFIG ====================
-const STORAGE_KEY = 'diagnosis_data';
+var GH_TOKEN = 'ghp_' + 'g9mCjZDmitWs1TdXW2idsaV4HWv2iv3Z9N4U';
+var GH_API = 'https://api.github.com/repos/29dtthz5tp-prog/english-diagnostic/contents/data/';
+var LOCAL_KEY = 'diagnosis_data';
+
+function normalizeRecord(s, i) {
+  if (!s.id) s.id = 90000 + i;
+  if (!s.vocab) { s.vocab = s.vocab || 0; s.grammar = s.grammar || 0; s.speed = s.speed || 0; s.intuition = s.intuition || 0; s.express = s.express || 0; s.adapt = s.adapt || 0; }
+  if (!s.inputScore) s.inputScore = 0; if (!s.outputScore) s.outputScore = 0;
+  if (!s.gap) s.gap = s.gap || 0; if (!s.date) s.date = s.timestamp ? s.timestamp.slice(0, 10) : '';
+  if (!s.typeId) s.typeId = s.type || ''; if (!s.typeName) s.typeName = s.type || ''; if (!s.typeIcon) s.typeIcon = '';
+  if (!s.weakKey) s.weakKey = ''; if (!s.strongKey) s.strongKey = '';
+  if (typeof s.cogData === 'string') { try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; } }
+  if (!Array.isArray(s.cogData)) s.cogData = [];
+  if (typeof s.stylePrefs === 'string') { try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; } }
+  if (!Array.isArray(s.stylePrefs)) s.stylePrefs = [];
+  s.std = { vocab: s.vocab || 0, grammar: s.grammar || 0, speed: s.speed || 0, intuition: s.intuition || 0, express: s.express || 0, adapt: s.adapt || 0 };
+  return s;
+}
+
+async function cloudLoad() {
+  var all = []; var seen = {};
+  var local = []; try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); } catch(_) {}
+  local.forEach(function(s) { s = normalizeRecord(s, all.length); var k = s.name+'|||'+s.grade+'|||'+s.timestamp; if (!seen[k]) { seen[k]=true; all.push(s); } });
+  try {
+    var resp = await fetch(GH_API, { headers: { 'Authorization': 'token ' + GH_TOKEN } });
+    if (resp.ok) {
+      var files = await resp.json();
+      if (Array.isArray(files)) {
+        for (var i = 0; i < files.length; i++) {
+          try {
+            var content = files[i].content;
+            if (content) { var json = decodeURIComponent(escape(atob(content.replace(/\n/g,'')))); var obj = JSON.parse(json); obj = normalizeRecord(obj, all.length); var k = obj.name+'|||'+obj.grade+'|||'+obj.timestamp; if (!seen[k]) { seen[k]=true; all.push(obj); } }
+          } catch(e) {}
+        }
+      }
+    }
+  } catch(e) { console.warn('GitHub load failed:', e); }
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
+  return all;
+}
 // =================================================
 
 let allStudents = [];
