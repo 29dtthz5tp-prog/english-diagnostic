@@ -207,22 +207,40 @@ footer .gt{color:var(--r);font-weight:600}
 <footer><span class="gt">高途</span> · 教师后台 · 初升高英语准备度追踪</footer>
 
 <script>
-// ==================== FIREBASE ====================
-const firebaseConfig = {
-  apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
-  authDomain: "gaotu-diagnostic.firebaseapp.com",
-  projectId: "gaotu-diagnostic",
-  storageBucket: "gaotu-diagnostic.firebasestorage.app",
-  messagingSenderId: "109824619609",
-  appId: "1:109824619609:web:41f749de0021de4ad26d48"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const COLLECTION = 'senior_students';
+// ==================== FIREBASE (with CDN-fail fallback) ====================
+var db = null;
+var COLLECTION = 'senior_students';
+var firebaseAvailable = false;
+
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
+      authDomain: "gaotu-diagnostic.firebaseapp.com",
+      projectId: "gaotu-diagnostic",
+      storageBucket: "gaotu-diagnostic.firebasestorage.app",
+      messagingSenderId: "109824619609",
+      appId: "1:109824619609:web:41f749de0021de4ad26d48"
+    });
+    db = firebase.firestore();
+    firebaseAvailable = true;
+  }
+} catch(e) {
+  console.warn('Firebase init failed, using localStorage only:', e.message);
+}
 let allStudents = [];
 
 // ==================== DATA ====================
+function loadLocalSenior() {
+  try { return JSON.parse(localStorage.getItem('gt_eng_diag_senior_students') || '[]'); } catch(_) { return []; }
+}
+
 function listenToData(){
+  if (!firebaseAvailable || !db) {
+    allStudents = loadLocalSenior();
+    render();
+    return;
+  }
   db.collection(COLLECTION).orderBy('timestamp','desc').onSnapshot(function(snap){
     allStudents = [];
     snap.forEach(function(doc){
@@ -230,10 +248,18 @@ function listenToData(){
       d.id = doc.id;
       allStudents.push(d);
     });
+    // Merge with local data
+    var local = loadLocalSenior();
+    var seen = {};
+    allStudents.forEach(function(s){ seen[s.name+'|||'+s.grade+'|||'+s.date] = true; });
+    local.forEach(function(s){
+      var key = s.name+'|||'+s.grade+'|||'+s.date;
+      if (!seen[key]) { seen[key] = true; allStudents.push(s); }
+    });
     render();
   }, function(err){
     console.error('Firestore listen error:', err);
-    allStudents = JSON.parse(localStorage.getItem('gt_eng_diag_senior_students')||'[]');
+    allStudents = loadLocalSenior();
     render();
   });
 }
