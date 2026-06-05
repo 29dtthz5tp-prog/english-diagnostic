@@ -1,0 +1,902 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语超能力测试</title>
+<style>
+:root{
+  --r:#E54545;--r2:#C62828;--r-light:#FFF0F0;--r-bg:#FFFBFA;
+  --o:#FF8C42;--y:#FFB703;--pink:#FF6B8A;
+  --g50:#fafafa;--g100:#f5f5f5;--g200:#e5e5e5;--g300:#d4d4d4;
+  --g500:#737373;--g600:#525252;--g700:#404040;--g800:#262626;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--g800);background:var(--r-bg);line-height:1.6;min-height:100vh;
+}
+.wrap{max-width:680px;margin:0 auto;padding:0 20px 40px}
+
+/* Top bar */
+.topbar{
+  background:var(--r);color:#fff;padding:20px 24px;text-align:center;
+  border-radius:0 0 24px 24px;position:relative;overflow:hidden;
+}
+.topbar::after{
+  content:'⭐ ✨ 💫';
+  position:absolute;top:8px;right:16px;
+  font-size:.7em;opacity:.5;letter-spacing:4px;
+}
+.topbar h1{font-size:1.4em;letter-spacing:1px}
+.topbar .by{font-size:.75em;opacity:.8;margin-top:2px}
+
+/* Mascot */
+.mascot{text-align:center;font-size:3em;margin:12px 0;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* Screen */
+.scr{display:none;animation:fadeIn .4s}
+.scr.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Card */
+.card{
+  background:#fff;border-radius:20px;border:2px solid #FFE0E0;
+  padding:28px 24px;margin-bottom:16px;box-shadow:0 2px 12px rgba(229,69,69,.06);
+}
+
+/* Welcome */
+.welcome-icon{font-size:3em;text-align:center;margin-bottom:8px}
+.welcome-text{text-align:center;font-size:1.1em;font-weight:600;color:var(--g700);margin-bottom:20px}
+
+/* Input */
+.input-box{
+  width:100%;padding:14px 18px;border:2px solid #FFD0D0;border-radius:14px;
+  font-size:1em;outline:none;text-align:center;font-family:inherit;
+  transition:border .2s;
+}
+.input-box:focus{border-color:var(--r)}
+
+/* Grade selector */
+.grade-row{display:flex;gap:10px;margin-top:12px}
+.grade-btn{
+  flex:1;padding:14px 8px;border:2px solid #FFD0D0;border-radius:14px;
+  background:#fff;cursor:pointer;font-size:.9em;font-weight:600;font-family:inherit;
+  transition:all .2s;color:var(--g600);
+}
+.grade-btn:hover{border-color:var(--o);background:#FFF8F5}
+.grade-btn.selected{border-color:var(--o);background:#FFF0E8;color:var(--o)}
+
+/* Progress stars */
+.stars-row{display:flex;gap:6px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.star{font-size:1.5em;opacity:.3;transition:all .3s}
+.star.done{opacity:1;transform:scale(1.2)}
+.star.current{opacity:.8;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+
+/* Section banner */
+.sec-banner{
+  text-align:center;padding:10px 16px;border-radius:12px;
+  margin-bottom:16px;font-weight:600;font-size:.88em;
+}
+.sec-banner.scene{background:#FFF5F0;color:var(--o)}
+.sec-banner.know{background:#FFF0F0;color:var(--r)}
+.sec-banner.self{background:#FFFDF0;color:#C5930A}
+.sec-banner.pref{background:#FFF5FA;color:var(--pink)}
+.sec-banner.cog{background:#F8F0FF;color:#7C3AED}
+
+/* Question */
+.q-num{font-size:.8em;color:var(--g500);margin-bottom:4px}
+.q-text{font-size:1.1em;font-weight:600;color:var(--g800);margin-bottom:18px}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 18px;border:2px solid #FFE0E0;border-radius:16px;
+  cursor:pointer;transition:all .2s;background:#fff;
+  font-size:.95em;text-align:left;width:100%;font-family:inherit;color:inherit;
+}
+.opt:hover{transform:translateX(4px);border-color:var(--o)}
+.opt .letter{
+  width:36px;height:36px;border-radius:50%;background:var(--r-light);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.9em;flex-shrink:0;color:var(--r);
+}
+.opt.selected{border-color:var(--r);background:var(--r-light);transform:translateX(4px)}
+.opt.selected .letter{background:var(--r);color:#fff}
+
+/* Likert */
+.likert-row{display:flex;gap:8px}
+.likert-btn{
+  flex:1;padding:14px 6px;border:2px solid #FFE0E0;border-radius:14px;
+  cursor:pointer;text-align:center;font-size:.82em;font-family:inherit;
+  background:#fff;transition:all .2s;
+}
+.likert-btn:hover{border-color:var(--o)}
+.likert-btn.selected{border-color:var(--r);background:var(--r-light);font-weight:700;color:var(--r)}
+
+/* Buttons */
+.btn{
+  display:inline-block;padding:14px 40px;border-radius:16px;
+  font-size:1em;font-weight:700;cursor:pointer;border:none;
+  transition:all .2s;font-family:inherit;
+}
+.btn-go{background:var(--r);color:#fff;font-size:1.05em;box-shadow:0 4px 12px rgba(229,69,69,.25)}
+.btn-go:hover{background:var(--r2);transform:translateY(-2px)}
+.btn-go:disabled{background:#ccc;cursor:not-allowed;box-shadow:none;transform:none}
+.btn-out{background:#fff;color:var(--r);border:2px solid #FFD0D0}
+.btn-out:hover{background:var(--r-light)}
+.btn-row{display:flex;gap:10px;margin-top:20px;justify-content:center;flex-wrap:wrap}
+
+/* Encouragement */
+.cheer{
+  text-align:center;padding:20px;background:linear-gradient(135deg,#FFF5F0,#FFF0F0);
+  border-radius:16px;margin-bottom:16px;font-size:1.1em;font-weight:600;color:var(--o);
+}
+
+/* ===== Report ===== */
+.r-card{
+  background:#fff;border-radius:24px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(229,69,69,.08);margin-bottom:16px;
+}
+.r-hero{
+  background:linear-gradient(135deg,var(--r),var(--o));
+  color:#fff;padding:28px 24px;text-align:center;
+}
+.r-hero .big-emoji{font-size:3.5em;display:block;margin-bottom:8px}
+.r-hero h2{font-size:1.2em;margin-bottom:4px}
+.r-hero .type-tag{
+  display:inline-block;background:rgba(255,255,255,.2);
+  padding:4px 16px;border-radius:12px;font-size:.85em;margin-top:4px;
+}
+.r-body{padding:24px}
+
+.r-section{margin-bottom:20px}
+.r-section:last-child{margin-bottom:0}
+.r-section h3{font-size:1em;color:var(--g700);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.r-section h3 .emj{font-size:1.3em}
+
+/* Simple bars */
+.sbar{margin:8px 0}
+.sbar-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.sbar-label{width:90px;font-size:.82em;text-align:right;flex-shrink:0;color:var(--g600)}
+.sbar-track{flex:1;height:18px;background:var(--g100);border-radius:9px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:9px;transition:width .8s}
+.sbar-num{width:36px;font-size:.82em;font-weight:700;text-align:center;flex-shrink:0}
+.sbar-emoji{font-size:.9em;width:28px;text-align:left;flex-shrink:0}
+
+/* Strength card */
+.strength-card{
+  background:linear-gradient(135deg,#FFF5F0,#FFFDF5);
+  border-radius:14px;padding:16px 18px;margin:8px 0;
+  border:1px solid #FFE8D0;
+}
+.strength-card h4{font-size:.9em;color:var(--o);margin-bottom:4px}
+
+/* Tips */
+.tip-card{
+  background:var(--r-light);border-radius:14px;padding:16px 18px;margin:8px 0;
+  border-left:4px solid var(--r);
+}
+.tip-card h4{font-size:.9em;color:var(--r);margin-bottom:4px}
+
+/* Celebration */
+.confetti{text-align:center;font-size:2em;padding:16px;animation:popIn .6s}
+@keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+
+.muted{font-size:.8em;color:var(--g500);text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🪞 英语学习镜子</h1>
+  <div class="by">照一照，看看你的英语长什么样</div>
+</div>
+
+<div class="wrap">
+
+<!-- ====== WELCOME ====== -->
+<div class="scr active" id="scr-welcome">
+  <div class="card" style="text-align:center">
+    <div class="mascot">🪞</div>
+    <div class="welcome-text">这不是考试，是一面镜子</div>
+    <p style="color:var(--g500);font-size:.9em;margin-bottom:6px;line-height:1.7">
+      没有标准答案，也不打分排名<br>
+      你越<strong style="color:var(--r)">真实</strong>，镜子里的自己就越<strong style="color:var(--r)">清楚</strong>
+    </p>
+    <p style="color:var(--g500);font-size:.82em;margin-bottom:18px;line-height:1.7">
+      做完后你会拿到两样东西：<br>
+      🧩 一份属于你的 <strong>英语学习画像</strong><br>
+      🗺️ 一份专属的 <strong>行动小指南</strong>
+    </p>
+    <p style="color:var(--g400);font-size:.75em;margin-bottom:16px">⏱ 大概15分钟 · 诚实回答就好</p>
+    <input type="text" class="input-box" id="stuName" placeholder="先告诉我你的名字吧~" style="max-width:300px">
+    <p style="color:var(--g500);font-size:.8em;margin-top:10px">你现在是几年级？</p>
+    <div class="grade-row" style="max-width:360px;margin:8px auto">
+      <button class="grade-btn" onclick="pickGrade('小升初衔接',this)">小升初</button>
+      <button class="grade-btn" onclick="pickGrade('初一',this)">初一</button>
+      <button class="grade-btn" onclick="pickGrade('初二',this)">初二</button>
+    </div>
+    <input type="hidden" id="stuGrade" value="">
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn btn-go" id="btnStart" disabled onclick="start()">开始闯关 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== QUIZ ====== -->
+<div class="scr" id="scr-quiz">
+  <div class="stars-row" id="starsRow"></div>
+  <div class="card">
+    <div id="secBanner" class="sec-banner"></div>
+    <div id="qContent"></div>
+    <div id="optArea"></div>
+    <div class="btn-row">
+      <button class="btn btn-go" id="btnNext" disabled onclick="nextQ()">继续 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== CHEER ====== -->
+<div class="scr" id="scr-cheer">
+  <div class="card" style="text-align:center">
+    <div class="confetti">🎉</div>
+    <h2 style="color:var(--r);margin-bottom:8px">太棒了！</h2>
+    <p style="color:var(--g600);font-size:1em" id="cheerMsg"></p>
+    <div class="btn-row">
+      <button class="btn btn-go" onclick="continueAfterCheer()">继续 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== RESULTS ====== -->
+<div class="scr" id="scr-results">
+  <div id="reportWrap"></div>
+  <div class="btn-row" style="margin-top:18px">
+    <button class="btn btn-out" onclick="restart()">🔄 再测一次</button>
+  </div>
+  <div class="muted">你的报告已自动保存，老师可以看到哦</div>
+</div>
+
+</div><!-- wrap -->
+
+<script>
+// ==================== CONFIG ====================
+// ⚠ 部署时请将下面的 URL 替换为你的 Google Apps Script Web App URL
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+// =================================================
+
+// ==================== STATE ====================
+let stuName='',stuGrade='',currentQ=0,selectedOpt=-1,inCognitive=false;
+let dimSum={vocab:0,grammar:0,speed:0,intuition:0,express:0,adapt:0};
+let dimCount={vocab:0,grammar:0,speed:0,intuition:0,express:0,adapt:0};
+let answers=[],cogData=[],stylePrefs=[],readingStart=0,questionOrder=[],adaptiveBuilt=false;
+
+// Cheer messages between sections
+const cheerMsgs=[
+  '第一部分完成啦！<br>接下来看看你的英语小技能~',
+  '真厉害！<br>还有最后几个问题就完成了~',
+  '最后一关！<br>这次没有标准答案，选你喜欢的就好~'
+];
+let cheerIdx=0;
+
+// ==================== WELCOME ====================
+function pickGrade(g,el){
+  document.getElementById('stuGrade').value=g;
+  document.querySelectorAll('.grade-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('btnStart').disabled=!(document.getElementById('stuName').value.trim()&&g);
+}
+document.getElementById('stuName').addEventListener('input',function(){
+  document.getElementById('btnStart').disabled=!(this.value.trim()&&document.getElementById('stuGrade').value);
+});
+
+// ==================== QUESTIONS ====================
+const questions=[
+  // 情景判断 (3)
+  {id:1,section:'scene',sectionName:'聊聊你的习惯',
+    q:'读英语文章时遇到不认识的单词，你通常会？',
+    o:['猜一下意思，继续读下去','马上查字典或问人','跳过，继续往下读','有点烦，不太想继续读了'],
+    s:[{adapt:2,speed:1},{adapt:-1,speed:-1},{adapt:1},{adapt:-2,express:-2}]},
+  {id:2,section:'scene',
+    q:'英语课上老师说"谁来用英语回答"，你通常会？',
+    o:['主动举手，想试试！','心里有答案，但不太想举手','低头，希望别叫我','简单的就举手，难的就算了'],
+    s:[{express:3},{express:-1},{express:-2},{express:1,adapt:1}]},
+  {id:3,section:'scene',
+    q:'做英语听力时有一段没听懂，你通常会？',
+    o:['继续听，抓住后面能懂的部分','卡住了，反复想刚才那段','算了，后面随便选选','根据听懂的部分猜整体意思'],
+    s:[{adapt:2,speed:1},{adapt:-2,speed:-1},{adapt:-1,express:-1},{adapt:1,speed:1}]},
+
+  // 知识点理解 (6)
+  {id:4,section:'know',sectionName:'单词小达人',
+    q:'哪个词和"happy"意思最接近？',
+    o:['sad（伤心的）','glad（高兴的）','angry（生气的）','tired（累的）'],
+    correct:1,s:[{vocab:-1},{vocab:3},{vocab:-1},{vocab:-1}]},
+  {id:5,section:'know',
+    q:'下面哪个句子是对的？',
+    o:['She go to school every day.','She goes to school every day.','She going to school every day.','She is go to school every day.'],
+    correct:1,s:[{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-2,intuition:-1}]},
+  {id:6,section:'know',
+    q:'"There is ___ apple on the table." 空格里应该填？',
+    o:['a','an','the','什么都不填'],
+    correct:1,s:[{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-2}]},
+  {id:7,section:'know',
+    q:'"She ___ to Beijing last week." 应该选？',
+    o:['go','goes','went','going'],
+    correct:2,s:[{grammar:-1},{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-2}]},
+  {id:8,section:'know',
+    q:'哪个句子读起来最自然？',
+    o:['I very much like English.','I like English very much.','Very much I like English.','I like very much English.'],
+    correct:1,s:[{intuition:-1},{intuition:3},{grammar:-1,intuition:-2},{grammar:-1,intuition:-2}]},
+  {id:9,section:'know',sectionName:'阅读小高手',
+    q:'读一读，回答问题：<br><br><span style="background:#FFF8F5;padding:12px 16px;display:block;border-radius:12px;font-size:.9em">My name is Tom. I am 12 years old. I like playing basketball and reading books. My favorite subject is English because my English teacher is very kind.</span><br>Tom为什么喜欢英语？',
+    o:['因为英语很简单','因为他的英语老师很和蔼','因为他喜欢看书','因为他想当老师'],
+    correct:1,s:[{speed:-1},{speed:3},{speed:-1},{speed:-1}]},
+
+  // 自我评估 Likert (4)
+  {id:10,section:'self',sectionName:'你觉得自己怎么样',
+    q:'你觉得自己的英语阅读能力怎么样？',
+    o:['非常差','比较差','一般','比较好','非常好'],
+    likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+  {id:11,section:'self',
+    q:'如果让你用英语写一段话介绍自己，你愿意试试吗？',
+    o:['完全不愿意','不太愿意','一般般','比较愿意','非常愿意！'],
+    likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+  {id:12,section:'self',
+    q:'遇到不认识的英语单词，你会主动猜它的意思吗？',
+    o:['从来不会','很少会','有时候会','经常会','每次都会'],
+    likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+  {id:13,section:'self',
+    q:'你觉得通过努力，你的英语能越来越好吗？',
+    o:['完全不可能','不太可能','有可能','很有可能','一定可以！'],
+    likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+  {id:16,section:'self',
+    q:'你觉得自己的单词量够看懂英语短文吗？',
+    o:['完全不够','不太够','一般般','基本够用','完全够用！'],
+    likert:true,dim:'vocab',lm:[-2,-1,0,1,2]},
+  {id:17,section:'self',
+    q:'写英语句子时，你对语法规则有把握吗？',
+    o:['完全没有','不太有','一般般','比较有','非常有把握！'],
+    likert:true,dim:'grammar',lm:[-2,-1,0,1,2]},
+  {id:18,section:'self',
+    q:'读英语文章时，你觉得自己读得快吗？',
+    o:['非常慢','比较慢','一般','比较快','非常快'],
+    likert:true,dim:'speed',lm:[-2,-1,0,1,2]},
+  {id:19,section:'self',
+    q:'不看语法书，凭感觉判断一个英文句子"对不对、顺不顺"，你有把握吗？',
+    o:['完全没把握','不太有把握','一般般','比较有把握','非常有把握！'],
+    likert:true,dim:'intuition',lm:[-2,-1,0,1,2]},
+
+  // 偏好配对 (2)
+  {id:14,section:'pref',sectionName:'你喜欢怎么学',
+    q:'你觉得哪种方式帮你记单词最有效？',
+    o:['反复抄写，写多了就记住了','大声读出来，读出声记得牢','放到句子里用，用过就不会忘','看图、联想、编故事来记'],
+    styles:['动觉型','听觉型','语境型','图像联想型']},
+  {id:15,section:'pref',
+    q:'在英语课上，你最喜欢哪种活动？',
+    o:['角色扮演、和同学对话','听老师讲知识点','自己安静读故事','做游戏、小组比赛'],
+    styles:['社交型','结构型','独立型','竞争型']}
+];
+
+const cogQ={
+  q:'🤔 你刚才是怎么选出答案的？',
+  o:['我记得规则或单词意思','读起来顺口，感觉对了','排除了不太像的选项','不太确定，猜的~'],
+  types:['rule','intuition','strategy','guess']
+};
+
+// Section break indices (questions index where cheer should appear)
+const cheerPoints=[3,9,17]; // After scene(3q), knowledge(6q+cog), self(8q)
+
+// ==================== QUIZ ENGINE ====================
+function start(){
+  stuName=document.getElementById('stuName').value.trim();
+  stuGrade=document.getElementById('stuGrade').value;
+  currentQ=0;selectedOpt=-1;inCognitive=false;cheerIdx=0;adaptiveBuilt=false;
+  dimSum={vocab:0,grammar:0,speed:0,intuition:0,express:0,adapt:0};
+  dimCount={vocab:0,grammar:0,speed:0,intuition:0,express:0,adapt:0};
+  answers=[];cogData=[];stylePrefs=[];
+  questionOrder=questions.map((_,i)=>i);
+  switchScr('scr-quiz');
+  let starsHTML='';
+  questionOrder.forEach((qi,i)=>{
+    const q=questions[qi];
+    if(q.section==='scene') starsHTML+='<span class="star" id="star'+i+'">⭐</span>';
+    else if(q.section==='know') starsHTML+='<span class="star" id="star'+i+'">💎</span>';
+    else if(q.section==='self') starsHTML+='<span class="star" id="star'+i+'">💬</span>';
+    else starsHTML+='<span class="star" id="star'+i+'">❤️</span>';
+  });
+  document.getElementById('starsRow').innerHTML=starsHTML;
+  renderQ();
+}
+
+function switchScr(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='scr-results') window.scrollTo(0,0);
+}
+
+function renderQ(){
+  document.getElementById('btnNext').textContent='继续 →';
+  const q=questions[questionOrder[currentQ]];if(!q)return showResults();
+  selectedOpt=-1;inCognitive=false;
+  updateStars();
+
+  const banner=document.getElementById('secBanner');
+  const bMap={scene:['scene','📋 '+q.sectionName],know:['know','✏️ '+q.sectionName],self:['self','💬 '+q.sectionName],pref:['pref','❤️ '+q.sectionName]};
+  banner.className='sec-banner '+bMap[q.section][0];
+  banner.textContent=bMap[q.section][1];
+
+  let content='<div class="q-num">第 '+(currentQ+1)+' / '+questionOrder.length+' 题</div>';
+  content+='<div class="q-text">'+q.q+'</div>';
+  document.getElementById('qContent').innerHTML=content;
+
+  const area=document.getElementById('optArea');area.innerHTML='';
+  document.getElementById('btnNext').disabled=true;
+
+  if(q.likert){
+    area.innerHTML='<div class="likert-row"></div>';
+    const row=area.querySelector('.likert-row');
+    q.o.forEach((o,i)=>{
+      const b=document.createElement('button');b.className='likert-btn';b.textContent=o;
+      b.onclick=function(){row.querySelectorAll('.likert-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedOpt=i;document.getElementById('btnNext').disabled=false;};
+      row.appendChild(b);
+    });
+  }else{
+    area.className='opts';
+    q.o.forEach((o,i)=>{
+      const btn=document.createElement('button');btn.className='opt';
+      btn.innerHTML='<span class="letter">'+'ABCD'[i]+'</span><span>'+o+'</span>';
+      btn.onclick=function(){area.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');selectedOpt=i;document.getElementById('btnNext').disabled=false;};
+      area.appendChild(btn);
+    });
+  }
+  if(q.id===9) readingStart=Date.now();
+}
+
+function updateStars(){
+  document.querySelectorAll('.star').forEach((s,i)=>{
+    s.classList.remove('done','current');
+    if(i<currentQ) s.classList.add('done');
+    else if(i===currentQ) s.classList.add('current');
+  });
+}
+
+function calcProvisionalScores(){
+  const raw={},std={};
+  Object.keys(dimSum).forEach(k=>{raw[k]=dimCount[k]>0?dimSum[k]/dimCount[k]:0;});
+  Object.keys(raw).forEach(k=>{std[k]=Math.max(10,Math.min(98,Math.round(50+raw[k]*12)));});
+  return std;
+}
+function buildAdaptiveQueue(){
+  const prov=calcProvisionalScores();
+  const sorted=Object.entries(prov).sort((a,b)=>a[1]-b[1]);
+  const weakDims=new Set([sorted[0][0],sorted[1][0]]);
+  const tail=questionOrder.slice(currentQ);
+  tail.sort((a,b)=>{
+    const qa=questions[a],qb=questions[b];
+    const aW=qa.dim&&weakDims.has(qa.dim)?1:0;
+    const bW=qb.dim&&weakDims.has(qb.dim)?1:0;
+    if(aW!==bW)return bW-aW;
+    return qa.section==='pref'?1:qb.section==='pref'?-1:0;
+  });
+  questionOrder=[...questionOrder.slice(0,currentQ),...tail];
+}
+
+function nextQ(){
+  const q=questions[questionOrder[currentQ]];
+
+  if(!inCognitive && q.section==='know'){
+    const correct=selectedOpt===q.correct;
+    answers.push({qid:q.id,type:'knowledge',answer:selectedOpt,correct});
+    const sig=q.s[selectedOpt];
+    if(sig) Object.keys(sig).forEach(k=>{dimSum[k]+=sig[k];dimCount[k]++;});
+    if(q.id===9){const rt=(Date.now()-readingStart)/1000;if(rt>45)dimSum.speed-=2;else if(rt>30)dimSum.speed-=1;else if(rt<15)dimSum.speed+=1;dimCount.speed++;}
+    inCognitive=true;renderCog();return;
+  }
+  if(inCognitive && q.section==='know'){
+    const ct=cogQ.types[selectedOpt];
+    const prevA=answers[answers.length-1];
+    cogData.push({qid:q.id,correct:prevA.correct,cogType:ct});
+    if(prevA.correct&&ct==='rule'){dimSum.grammar+=1;dimCount.grammar++;}
+    else if(prevA.correct&&ct==='intuition'){dimSum.intuition+=1;dimCount.intuition++;dimSum.speed+=1;dimCount.speed++;}
+    else if(!prevA.correct&&ct==='rule'){dimSum.grammar-=1;dimCount.grammar++;}
+    else if(!prevA.correct&&ct==='intuition'){dimSum.intuition-=1;dimCount.intuition++;}
+    inCognitive=false;currentQ++;
+    if(!adaptiveBuilt&&currentQ>=9){buildAdaptiveQueue();adaptiveBuilt=true;}
+    if(currentQ>=questionOrder.length){showResults();return;}
+    if(cheerPoints.includes(currentQ)){document.getElementById('cheerMsg').innerHTML=cheerMsgs[cheerIdx];cheerIdx++;switchScr('scr-cheer');return;}
+    renderQ();return;
+  }
+
+  // Non-knowledge
+  if(q.section==='scene'){
+    answers.push({qid:q.id,type:'scenario',answer:selectedOpt});
+    const sig=q.s[selectedOpt];
+    if(sig) Object.keys(sig).forEach(k=>{dimSum[k]+=sig[k];dimCount[k]++;});
+  }else if(q.section==='self'){
+    answers.push({qid:q.id,type:'self',answer:selectedOpt});
+    dimSum[q.dim]+=q.lm[selectedOpt];dimCount[q.dim]++;
+  }else if(q.section==='pref'){
+    answers.push({qid:q.id,type:'preference',answer:selectedOpt,style:q.styles[selectedOpt]});
+    stylePrefs.push(q.styles[selectedOpt]);
+  }
+
+  currentQ++;
+  if(currentQ>=questionOrder.length){showResults();return;}
+  if(cheerPoints.includes(currentQ)){document.getElementById('cheerMsg').innerHTML=cheerMsgs[cheerIdx];cheerIdx++;switchScr('scr-cheer');return;}
+  renderQ();
+}
+
+function continueAfterCheer(){switchScr('scr-quiz');renderQ();}
+
+function renderCog(){
+  const q=questions[questionOrder[currentQ]];
+  document.getElementById('secBanner').className='sec-banner cog';document.getElementById('secBanner').textContent='🤔 想一想';
+  document.getElementById('qContent').innerHTML='<div class="q-num">追问</div><div class="q-text">'+cogQ.q+'</div>';
+  const area=document.getElementById('optArea');area.className='opts';area.innerHTML='';
+  cogQ.o.forEach((o,i)=>{
+    const btn=document.createElement('button');btn.className='opt';
+    btn.innerHTML='<span class="letter">'+'ABCD'[i]+'</span><span>'+o+'</span>';
+    btn.onclick=function(){area.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');selectedOpt=i;document.getElementById('btnNext').disabled=false;};
+    area.appendChild(btn);
+  });
+  document.getElementById('btnNext').textContent='选好了 →';
+  document.getElementById('btnNext').disabled=true;
+}
+
+// ==================== SCORING ====================
+function calcScores(){
+  const raw={},std={};
+  Object.keys(dimSum).forEach(k=>{raw[k]=dimCount[k]>0?dimSum[k]/dimCount[k]:0;});
+  Object.keys(raw).forEach(k=>{std[k]=Math.max(10,Math.min(98,Math.round(50+raw[k]*12)));});
+  const inputScore=Math.round(std.vocab*0.35+std.speed*0.35+std.intuition*0.30);
+  const outputScore=Math.round(std.grammar*0.4+std.express*0.6);
+  return{raw,std,inputScore,outputScore};
+}
+
+function classifyType(std,inputScore,outputScore){
+  const gap=Math.abs(inputScore-outputScore);
+  const{vocab:v,grammar:g,speed:sp,intuition:i,express:e,adapt:a}=std;
+  const all=Object.values(std);
+  const avg=all.reduce((x,y)=>x+y,0)/6;
+  const sorted=Object.entries(std).sort((a,b)=>a[1]-b[1]);
+  const wk=sorted[0],st=sorted[5];
+  // All-around strong
+  if(all.every(x=>x>=65)) return{id:'all_high',name:'全能小超人',icon:'🦸',desc:'你的英语各方面都很棒！听说读写样样在行，继续保持这样的状态！',color:'#E54545'};
+  // All-around developing
+  if(all.every(x=>x<45)) return{id:'all_low',name:'成长小苗',icon:'🌱',desc:'你的英语正在慢慢发芽，每个人都是从这一步开始的。别着急，一步一步来，你会看到自己的进步！',color:'#FF8C42'};
+  // Input-output gap — 核心诊断信号
+  if(gap>=18&&inputScore>outputScore) return{id:'input_strong',name:'输入强势型',icon:'🔍',desc:'你读得懂、听得明，但说和写还需要加把劲。你的输入能力是你的超能力，现在要把这股能量传递到输出端！',color:'#3B7CFF'};
+  if(gap>=18&&outputScore>inputScore) return{id:'output_strong',name:'输出强势型',icon:'📢',desc:'你敢说敢写，超有勇气！接下来多读多听，让你的表达变得更准确、更地道。',color:'#FF6B8A'};
+  // Classify by weakest dimension
+  const weakGap=avg-wk[1];
+  if(weakGap>=7){
+    var typeMap={
+      vocab:{id:'weak_vocab',name:'词汇探险家',icon:'📚',desc:'你认识的词还不够多，但这正是进步空间最大的地方！每天认识几个新朋友（单词），很快你就能读更多、懂更多。',color:'#3B7CFF'},
+      grammar:{id:'weak_grammar',name:'语法小工匠',icon:'🏗️',desc:'语法规则还在搭建中，写句子时偶尔会迷路。没关系，语法是"长"进脑子里的，多读多练自然就通了。',color:'#B45309'},
+      speed:{id:'weak_speed',name:'慢读小蜗牛',icon:'🐌',desc:'你读英语的速度偏慢，可能在逐词翻译。蜗牛虽慢但总能到达终点——多读多练，你会越来越快的！',color:'#FF6B35'},
+      intuition:{id:'weak_intuition',name:'语感萌芽中',icon:'💡',desc:'你对英语"对不对"的感觉还在生长中。多听多读，让正确的英语像音乐一样流进你的耳朵，语感会慢慢长出来的。',color:'#7C3AED'},
+      express:{id:'weak_express',name:'害羞小话筒',icon:'🎤',desc:'你不太敢开口说英语，可能怕犯错。但其实说错了改过来才是进步最快的方式——勇敢说出来，你就已经赢了一半！',color:'#DB2777'},
+      adapt:{id:'weak_adapt',name:'谨慎小船长',icon:'🧭',desc:'遇到不认识的词或不懂的内容时容易紧张。学英语的路上"不完全懂"太正常了，学会和它相处，你会航行得更远。',color:'#0D9488'}
+    };
+    return typeMap[wk[0]];
+  }
+  // Balanced — 各维度差距不大
+  return{id:'balanced',name:'均衡小战士',icon:'⭐',desc:'你的英语各方面发展比较均衡，没有明显的短板。继续全面发展，找到自己最感兴趣的方向深入下去！',color:'#E54545'};
+}
+
+
+// ==================== REPORT ====================
+async function showResults(){
+  const{std,inputScore,outputScore}=calcScores();
+  const gap=Math.abs(inputScore-outputScore);
+  const type=classifyType(std,inputScore,outputScore);
+  const dimNames={vocab:'词汇积累',grammar:'语法规则',speed:'阅读速度',intuition:'英语语感',express:'表达勇气',adapt:'适应能力'};
+  const dimIcons={vocab:'📚',grammar:'🏗️',speed:'⚡',intuition:'💡',express:'🔥',adapt:'🧭'};
+  const dimColors={vocab:'#3B7CFF',grammar:'#B45309',speed:'#FF6B35',intuition:'#7C3AED',express:'#DB2777',adapt:'#0D9488'};
+  const sorted=Object.entries(std).sort((a,b)=>a[1]-b[1]);
+  const weakK=sorted[0][0],weakV=sorted[0][1];
+  const strongK=sorted[sorted.length-1][0],strongV=sorted[sorted.length-1][1];
+  const s2=sorted.length>=5?sorted[sorted.length-2]:null;
+
+  let h='<div class="r-card">';
+
+  // ===== Hero: 类型画像 =====
+  h+='<div class="r-hero"><span class="big-emoji">'+type.icon+'</span>';
+  h+='<h2>'+stuName+' · 英语学习画像</h2>';
+  h+='<div class="type-tag">'+type.name+'</div>';
+  h+='<p style="margin-top:10px;font-size:.88em;opacity:.92;line-height:1.7">'+type.desc+'</p>';
+  if(gap>=20){
+    const gapDir=inputScore>outputScore?'读和听的能力比写和说强不少':'说和写的勇气比读和听的能力更突出';
+    h+='<p style="margin-top:6px;font-size:.82em;opacity:.8">💡 你的'+gapDir+'——这意味着同样的总分下，你需要的方式和别人不一样。</p>';
+  }
+  h+='</div>';
+
+  // ===== Body =====
+  h+='<div class="r-body">';
+
+  // ---- P1: 六维能力条 ----
+  h+='<h3>📊 六维能力一览</h3>';
+  h+='<div class="sbar">';
+  Object.entries(std).forEach(([k,v])=>{
+    const e=v>=80?'😄':v>=65?'🙂':v>=45?'😐':'😰';
+    const comment=dimComment(k,v);
+    h+='<div class="sbar-row"><div class="sbar-label">'+dimIcons[k]+' '+dimNames[k]+'</div><div class="sbar-track"><div class="sbar-fill" style="width:'+v+'%;background:'+dimColors[k]+'"></div></div><div class="sbar-num" style="color:'+dimColors[k]+'">'+v+'</div><div class="sbar-emoji" title="'+comment+'">'+e+'</div></div>';
+    h+='<div style="font-size:.75em;color:var(--g500);margin:-2px 0 8px 100px">'+comment+'</div>';
+  });
+  h+='</div>';
+
+  // ---- 输入-输出 ----
+  h+='<div style="background:#FFF8F5;border-radius:12px;padding:14px 16px;margin:10px 0;font-size:.88em">';
+  h+='<strong>📥 输入能力：'+inputScore+'分</strong>（读+听+词汇） &nbsp;|&nbsp; <strong>📤 输出能力：'+outputScore+'分</strong>（写+说+语法）';
+  if(gap>=20){
+    h+='<br><span style="color:var(--r)">⚠ 你的输入和输出差距比较大，这意味着：你需要的不是"全面补"，而是重点突破输出端。</span>';
+  }else{
+    h+='<br><span style="color:#16A34A">✅ 输入和输出发展比较均衡，这是个好信号，说明你各方面在同步前进。</span>';
+  }
+  h+='</div>';
+
+  // ---- P2: 你的超能力（2个优势维度） ----
+  h+='<h3 style="margin-top:20px">💪 你的超能力</h3>';
+  h+='<div class="strength-card"><h4>'+dimIcons[strongK]+' '+dimNames[strongK]+'：'+strongV+'分</h4><p style="font-size:.88em;color:var(--g600)">'+strengthDetail(strongK,strongV)+'</p></div>';
+  if(s2&&s2[1]>=60&&s2[0]!==strongK){
+    h+='<div class="strength-card"><h4>'+dimIcons[s2[0]]+' '+dimNames[s2[0]]+'：'+s2[1]+'分</h4><p style="font-size:.88em;color:var(--g600)">'+strengthDetail(s2[0],s2[1])+'</p></div>';
+  }
+  h+='<p style="font-size:.82em;color:var(--g500);margin-top:6px">这些是你的英语学习"支点"——后续提升可以借助这些优势来撬动其他维度。</p>';
+
+  // ---- P3: 需要加油的地方（2个薄弱维度） ----
+  h+='<h3 style="margin-top:20px">🎯 需要加油的地方</h3>';
+  h+='<div class="tip-card"><h4>💡 '+dimNames[weakK]+'：'+weakV+'分</h4><p style="font-size:.88em;color:var(--g600)">'+weaknessDetail(weakK,weakV,std)+'</p>';
+  h+='<p style="font-size:.84em;margin-top:6px"><strong>可以试试：</strong>'+actionForDim(weakK,std,type)+'</p></div>';
+  if(sorted[1][1]<55&&sorted[1][0]!==strongK){
+    const k2=sorted[1][0],v2=sorted[1][1];
+    h+='<div class="tip-card"><h4>💡 '+dimNames[k2]+'：'+v2+'分</h4><p style="font-size:.88em;color:var(--g600)">'+weaknessDetail(k2,v2,std)+'</p>';
+    h+='<p style="font-size:.84em;margin-top:6px"><strong>可以试试：</strong>'+actionForDim(k2,std,type)+'</p></div>';
+  }
+
+  // ---- P4: 认知模式 ----
+  if(cogData.length>0){
+    const tc=cogData.length;
+    const rc=cogData.filter(d=>d.cogType==='rule').length;
+    const ic=cogData.filter(d=>d.cogType==='intuition').length;
+    h+='<h3 style="margin-top:20px">🧠 你的答题风格</h3>';
+    h+='<div style="background:#FFFDF5;border-radius:12px;padding:14px 16px;font-size:.88em">';
+    if(ic>=rc&&ic>=2) h+='你偏向<strong>凭感觉答题</strong>——读起来顺口的就选。这说明英语在你心里已经有了一些"隐形知识"，接下来可以试着把这种感觉说出来："为什么我觉得这个对？"，把感觉变成能讲清楚的规则。';
+    else if(rc>=ic&&rc>=2) h+='你偏向<strong>靠规则答题</strong>——认真回忆学过的语法和单词再来选。这个习惯很好！接下来多读多听，让这些规则从"需要想"变成"自然反应"。';
+    else h+='你的答题方式比较多样——有时候靠规则，有时候靠感觉，有时候靠策略。这很正常！慢慢找到最适合自己的方式就好。';
+    h+='</div>';
+  }
+
+  // ---- P5: 专属行动指南 ----
+  h+='<h3 style="margin-top:20px">🗺️ 你的专属行动指南</h3>';
+  h+='<div style="background:var(--r-light);border-radius:12px;padding:16px 18px;font-size:.88em;line-height:1.7">';
+  h+='<p style="margin-bottom:8px"><strong>接下来一个月，你可以重点做这几件事：</strong></p>';
+  const actions=buildActionPlan(std,type,weakK,strongK,gap);
+  actions.forEach((a,i)=>h+='<p style="margin:6px 0">'+(i+1)+'. <strong>'+a.title+'</strong>：'+a.desc+'</p>');
+  h+='</div>';
+
+  // ---- 风格偏好 ----
+  if(stylePrefs.length>0){
+    h+='<h3 style="margin-top:20px">🎨 你偏好的学习方式</h3>';
+    h+='<div style="font-size:.88em;color:var(--g600);line-height:1.7">你喜欢：<strong>'+stylePrefs.join('、')+'</strong><br>以后背单词、做练习的时候，可以多用这些方式来学，效果会更好！</div>';
+  }
+
+  // ===== 总结 =====
+  h+='<div style="text-align:center;margin-top:20px;padding:16px;background:linear-gradient(135deg,#FFF5F0,#FFFDF5);border-radius:14px">';
+  h+='<p style="font-size:1em;font-weight:600;color:var(--o)">✨ '+closingMessage(type,std)+' ✨</p>';
+  h+='<p style="font-size:.78em;color:var(--g400);margin-top:6px">建议1个月后再来照一次镜子，看看自己进步了多少</p>';
+  h+='</div>';
+
+  h+='</div>'; // close r-body
+  const prev=await getPreviousRecord();
+  saveToStorage(std,inputScore,outputScore,gap,type);
+  if(prev){
+    h+='<div style="margin-top:16px;background:#fff;border-radius:16px;padding:20px 24px;border:2px solid #E8F5E9">';
+    h+='<h3 style="color:#16A34A;margin-bottom:12px">📈 学期对比 · '+prev.date+' → '+new Date().toISOString().slice(0,10)+'</h3>';
+    const dimKeys=['vocab','grammar','speed','intuition','express','adapt'];
+    dimKeys.forEach(k=>{
+      const delta=std[k]-prev.std[k];
+      const arrow=delta>=8?'<span style="color:#16A34A;font-weight:700">↑'+delta+'</span>':delta<=-8?'<span style="color:#E54545;font-weight:700">↓'+Math.abs(delta)+'</span>':'<span style="color:#999">→0</span>';
+      h+='<div style="margin:8px 0"><div style="display:flex;align-items:center;gap:8px;font-size:.82em;color:var(--g600)"><span style="width:70px">'+dimIcons[k]+' '+dimNames[k]+'</span>';
+      h+='<div style="flex:1;height:14px;background:#eee;border-radius:7px;overflow:hidden;display:flex"><div style="width:'+prev.std[k]+'%;background:#ccc;height:100%;border-radius:7px 0 0 7px"></div><div style="width:'+(std[k]-prev.std[k])+'%;background:'+(delta>=0?'#4CAF50':'#EF9A9A')+';height:100%;min-width:0"></div></div>';
+      h+='<span style="width:36px;text-align:center;font-weight:600">'+std[k]+'</span> '+arrow+'</div></div>';
+    });
+    const improved=dimKeys.filter(k=>std[k]-prev.std[k]>=8).length;
+    const declined=dimKeys.filter(k=>std[k]-prev.std[k]<=-8).length;
+    if(improved>0) h+='<p style="margin-top:10px;font-size:.82em;color:#16A34A">✅ '+improved+'个维度明显进步，继续加油！</p>';
+    if(declined>0) h+='<p style="font-size:.82em;color:var(--r)">⚠ '+declined+'个维度有所回落，建议和老师聊聊原因～</p>';
+    if(improved===0&&declined===0) h+='<p style="font-size:.82em;color:var(--g500)">各维度变化不大，建议调整学习策略试试新方法~</p>';
+    h+='</div>';
+  }
+  h+='</div>'; // close r-card
+
+// ---- Dimension-level comments ----
+function dimComment(k,v){
+  const m={
+    vocab:['能认识的单词还不多，阅读时经常被生词卡住','认识一些常用词，够应付简单阅读','词汇量不错，阅读时不太会被生词拦住','词汇量很好，能比较流畅地阅读短文'],
+    grammar:['语法规则还不太清楚，写句子时容易出错','对基本语法有一定了解，但用的时候偶尔会错','语法规则掌握得不错，大部分题能做对','语法很扎实，能准确地组织和检查句子'],
+    speed:['阅读和做题速度偏慢，可能在逐词翻译','速度中等，有时会被长句子拖慢','阅读速度不错，能较快抓住文章大意','阅读非常流畅，大脑建立了英语的直接通路'],
+    intuition:['对英语"对不对"还不太有感觉，主要靠规则判断','语感正在形成中，偶尔能凭感觉选对','语感不错，有些题说不出原因但能选对','语感很好，英语的"自然度"判断很准'],
+    express:['不太愿意用英语表达，可能怕犯错','有一定的表达意愿，但还需要鼓励','愿意开口说动笔写，不害怕输出','表达意愿很强，积极主动用英语交流'],
+    adapt:['遇到不懂的词容易慌或放弃','能接受一些不认识的词，但策略不多','面对未知内容比较淡定，会尝试猜或跳','应对策略丰富，能从上下文有效推测']
+  };
+  const i=v>=80?3:v>=65?2:v>=45?1:0;
+  return m[k][i];
+}
+
+function strengthDetail(k,v){
+  const m={
+    vocab:'你能认出不少英语单词，阅读时不会被频繁卡住。这意味着你可以读更多有趣的英语材料——阅读量越大，词汇涨得越快，这是一个正向循环。',
+    grammar:'你对语法规则有自己的理解，写句子时知道该怎么组织。接下来可以试着"自查"——写完一句话后自己读一遍，看看有没有需要改的地方。',
+    speed:'你读英语的速度比较快，大脑不需要先翻译成中文就能理解。这个能力非常宝贵——它让你在同样的时间里比别人多读很多东西。',
+    intuition:'你对英语有很好的"感觉"，有些题你不知道为什么但就是能选对。这是大量正确输入积累出来的隐性能力，请一定保持每天的英语阅读/听力习惯。',
+    express:'你不害怕开口说英语、动笔写英语，这份勇气比任何语法知识都珍贵。语言是用出来的——你的"不怕"会带你走很远。',
+    adapt:'面对不认识的词或不太懂的内容时你不会慌张，会试着猜一猜、想一想。学英语的路上"不完全懂"是常态，你的这种从容让你比别人学得更快。'
+  };
+  return m[k]||'这个维度是你当前相对占优的能力，是后续学习的有力支撑。';
+}
+
+function weaknessDetail(k,v,std){
+  const m={
+    vocab:'目前认识的单词还不够多，阅读时可能经常遇到"拦路虎"。好消息是：词汇是英语里最容易通过"每天积累"来提升的维度，只要坚持，见效很快。',
+    grammar:'对语法规则还不太清晰，写句子时可能会犯一些基础错误。这很正常——语法需要时间慢慢"长"进脑子里，不是一两天的事。',
+    speed:'阅读和做题的速度偏慢，可能因为看到英语要先在脑子里翻译成中文。这个习惯可以通过大量限时练习来改——读多了，速度自然会上来。',
+    intuition:'对英语"对不对""顺不顺"还不太有感觉。这通常是因为英语输入量还不够——大脑没听过足够的正确英语，自然判断不了。多听多读是唯一的解法。',
+    express:'不太愿意用英语表达自己，可能因为害怕犯错或者觉得自己"还不够好"。但其实，说错了改过来才是学会的最快方式——没有人一开口就是完美的。',
+    adapt:'遇到不认识的词或不太懂的内容时容易焦虑或放弃。这在学英语中特别常见——但"不完全懂"其实是学语言的正常状态，学会和它相处会让你轻松很多。'
+  };
+  return m[k]||'这个维度当前是相对薄弱的一环，需要优先关注和刻意练习。';
+}
+
+function actionForDim(k,std,type){
+  const acts={
+    vocab:'每天学8个新单词，用拼读法记（按发音拼写），当天学当天造句。准备一个"生词小本本"，把遇到的不认识的词记下来。',
+    grammar:'不要死记规则。找3-5个正确的句子，抄下来大声读，然后遮住，自己模仿着写几个类似的。对比法比背诵法有效10倍。',
+    speed:'每天做1篇限时阅读：找一篇80词左右的短文，先正常读一遍，再计时3分钟读一遍做题。目标是慢慢压缩时间，不求一次到位。',
+    intuition:'每天至少15分钟英语"泡澡"——听英文歌、看英文动画片段、跟读课文。不要求每个词都懂，求的是让耳朵和眼睛习惯英语。',
+    express:'从"超低门槛"开始：每天用英语写1句话（写什么都行，今天吃了什么、天气怎么样），先写10天不纠错，建立"动笔不可怕"的体验。',
+    adapt:'专门练"猜词"：找一篇短文，圈出不认识的词，先根据上下文猜意思，猜完再查字典验证。猜错了没关系——练的是"敢猜"这个动作本身。'
+  };
+  return acts[k]||'给自己定一个小小的周目标，完成了给自己一个小奖励。学习是马拉松不是短跑，稳定的节奏比冲刺重要。';
+}
+
+function buildActionPlan(std,type,weakK,strongK,gap){
+  const plans=[];
+  // Priority 1: weakest dimension
+  const a1={
+    vocab:{title:'每天积累8个词',desc:'早上学4个新词，晚上复习。用新词造一个跟自己生活有关的句子（比如"I ate noodles today"），写在专门的"单词小本本"上。'},
+    grammar:{title:'每天对比5个句子',desc:'找一对正确和错误的句子（比如"She goes" vs "She go"），读出来感受哪个对、为什么。一周后你会发现自己对语法"有感觉了"。'},
+    speed:{title:'每天1篇限时阅读',desc:'找80词左右的短文，计时读。第一遍不限时，第二遍控制在3分钟内。重点不是全对，是练习"不翻译直接理解"。'},
+    intuition:{title:'每天15分钟英语浸泡',desc:'选你喜欢的——听英文歌看歌词、看5分钟英文动画、跟读课文。不求100%听懂，泡着就行，语感是"泡"出来的。'},
+    express:{title:'每天写1句英语',desc:'不用多，就1句。内容随便——今天干了啥、心情怎么样、吐槽天气都行。先坚持10天，不纠错，只管写。'},
+    adapt:{title:'每天猜1个生词',desc:'在阅读中遇到不认识的词，先别查，根据上下文猜。猜完再查。慢慢你会发现"猜对"的概率其实很高。'}
+  };
+  plans.push(a1[weakK]||a1.vocab);
+
+  // Priority 2: leverage strength
+  if(strongK!==weakK){
+    const a2={
+      vocab:{title:'用你的词汇量读更多',desc:'既然认识的词不少，就多读！选稍难一点的材料，利用已有的词汇去"攻克"新内容，在读的过程中顺便拓展新词。'},
+      grammar:{title:'写完后自己检查一遍',desc:'利用你对语法的敏感度，写完英语句子后花30秒"自查"。你有能力发现大部分错误——这个检查过程本身就是最好的练习。'},
+      speed:{title:'用速度优势积累语感',desc:'既然读得快，就多读。每天多读1-2篇短文，量的积累会自然带动词汇和语感的提升。'},
+      intuition:{title:'试试"反向总结"',desc:'从你觉得顺口的句子中，自己总结语法规律。比如从"I like / She likes"中自己发现"三单要加s"——用归纳法对你这种语感型学习者特别有效。'},
+      express:{title:'保护你的表达勇气',desc:'这是你最宝贵的资本。每次写完说完之后，先想"我哪里表达对了"，再想"哪里可以更好"——顺序很重要。'},
+      adapt:{title:'挑战更难的材料',desc:'既然你不怕陌生的内容，就去读一些原汁原味的东西——英文绘本、简单新闻、歌词——你的适应能力会让你进步得比别人快。'}
+    };
+    plans.push(a2[strongK]||a2.vocab);
+  }
+
+  // Priority 3: if input-output gap
+  if(gap>=18&&type.id==='input_strong'){
+    plans.push({title:'把"读懂"变成"写出"',desc:'用你读过的短文做仿写：把原文的主角名字换掉、动词改一下人称、加一个形容词。这就是在"输出"了，而且不费劲。'});
+  }
+
+  return plans;
+}
+
+function closingMessage(type,std){
+  const msgs={
+    all_high:'你的英语各方面都在高水平运行，保持现在的习惯，你就是自己的最佳引擎！',
+    all_low:'每个人都是从种子开始的。今天的你比昨天多学了一个词，就是进步。别着急，花会开的 🌱',
+    input_strong:'你有一双善于发现的眼睛。现在，试着把看到的用出来——写一句、说一句，你的英语会变得更完整。',
+    output_strong:'你有表达的勇气，这非常了不起。加上更多的阅读和听力输入，你的表达会变得更准确、更有力。',
+    weak_vocab:'多认识一个词，你的英语世界就大一圈。每天几个新朋友，很快你就能走得更远、看得更多。',
+    weak_grammar:'语法不是背出来的，是"用"出来的。多读正确的句子，慢慢你会发现规则自己就跑进脑子里了。',
+    weak_speed:'慢一点没关系，重要的是每一步都扎实。读得多了，速度自然就上来了——这是每个人都走过的路。',
+    weak_intuition:'语感就像小苗，需要每天浇水（听英语、读英语）。坚持下去，它会悄悄长大的 🌱',
+    weak_express:'记住：没有人一开口就是完美的。你说出来的每一句，都是在给自己铺路。勇敢开口，你已经很棒了！',
+    weak_adapt:'面对未知会紧张是正常的。但你已经走在这条路上了——每一次"不知道"都是让你变强的机会。',
+    balanced:'你现在各方面都在稳步前进。保持这个节奏，同时找到自己最喜欢的英语方向去深入探索吧！'
+  };
+  return msgs[type.id]||'你有自己的学习节奏和特点，这就是你最大的优势。保持好奇，保持尝试，你会看到自己的进步。';
+}
+// ==================== STORAGE (Google Apps Script) ====================
+
+async function getPreviousRecord(){
+  try{
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=history&name=' +
+      encodeURIComponent(stuName) + '&grade=' + encodeURIComponent(stuGrade));
+    const data = await resp.json();
+    if (data && data.name) {
+      // Reconstruct std object from flat fields
+      data.std = {
+        vocab: data.vocab, grammar: data.grammar, speed: data.speed,
+        intuition: data.intuition, express: data.express, adapt: data.adapt
+      };
+      data.type = data.typeId;
+      return data;
+    }
+    return null;
+  }catch(e){
+    console.error('Query failed, using localStorage fallback:',e);
+    const students=JSON.parse(localStorage.getItem('gt_eng_diag_students')||'[]');
+    const mine=students.filter(s=>s.name===stuName&&s.grade===stuGrade);
+    return mine.length>0?mine[mine.length-1]:null;
+  }
+}
+
+function saveToStorage(std,inputScore,outputScore,gap,type){
+  const data={
+    name:stuName,grade:stuGrade,
+    date:new Date().toISOString().slice(0,10),
+    vocab:std.vocab, grammar:std.grammar, speed:std.speed,
+    intuition:std.intuition, express:std.express, adapt:std.adapt,
+    inputScore,outputScore,gap,
+    typeId:type.id, typeName:type.name, typeIcon:type.icon,
+    weakKey:Object.entries(std).sort((a,b)=>a[1]-b[1])[0][0],
+    strongKey:Object.entries(std).sort((a,b)=>a[1]-b[1]).reverse()[0][0],
+    cogData:JSON.stringify(cogData),
+    stylePrefs:JSON.stringify(stylePrefs),
+    timestamp:new Date().toISOString()
+  };
+
+  return fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(r => r.json()).then(r => {
+    console.log('Saved to Apps Script, row:', r.row);
+  }).catch(function(e){
+    console.error('Submit failed, saving locally:',e);
+    // localStorage fallback
+    const key='gt_eng_diag_students';
+    let students=JSON.parse(localStorage.getItem(key)||'[]');
+    students.push({id:Date.now(),std,inputScore,outputScore,gap,type:type.id,typeName:type.name,typeIcon:type.icon,cogData,stylePrefs,...data});
+    localStorage.setItem(key,JSON.stringify(students));
+    // Also queue for retry
+    const pqKey='gt_eng_diag_pending';
+    let pending=JSON.parse(localStorage.getItem(pqKey)||'[]');
+    pending.push(data);
+    localStorage.setItem(pqKey,JSON.stringify(pending));
+  });
+}
+
+// Retry pending submissions on page load
+(function flushPending(){
+  const pqKey='gt_eng_diag_pending';
+  const pending=JSON.parse(localStorage.getItem(pqKey)||'[]');
+  if(!pending.length) return;
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pending[0])
+  }).then(r => r.json()).then(() => {
+    pending.shift();
+    localStorage.setItem(pqKey, JSON.stringify(pending));
+    if(pending.length) flushPending();
+  }).catch(() => { /* leave for next page load */ });
+})();
+
+function restart(){
+  document.getElementById('stuName').value='';
+  document.getElementById('stuGrade').value='';
+  document.querySelectorAll('.grade-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('btnStart').disabled=true;
+  switchScr('scr-welcome');
+}
+</script>
+</body>
+</html>
