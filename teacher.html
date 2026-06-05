@@ -147,12 +147,14 @@ footer .gt{color:var(--r);font-weight:600}
 .adv-item h4{font-size:.9em;color:var(--r);margin-bottom:4px}
 .adv-action{background:var(--r-light);border-radius:8px;padding:10px 14px;margin-top:6px;font-size:.84em}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
 <div class="topbar">
   <h1>📊 班级英语画像总览</h1>
-  <div class="sub">教师后台 &nbsp;|&nbsp; 数据每15秒自动刷新</div>
+  <div class="sub">高途 · 二讲老师后台 &nbsp;|&nbsp; 学生端数据自动同步</div>
 </div>
 
 <div class="wrap">
@@ -177,7 +179,6 @@ footer .gt{color:var(--r);font-weight:600}
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
     <h2 style="margin:0">👨‍🎓 学员记录</h2>
     <div class="btn-row">
-      <button class="btn btn-sec btn-sm" onclick="fetchData()">🔄 刷新</button>
       <button class="btn btn-pri btn-sm" onclick="exportCSV()">📥 导出 CSV</button>
       <button class="btn btn-red btn-sm" onclick="clearData()">🗑 清空</button>
     </div>
@@ -207,59 +208,39 @@ footer .gt{color:var(--r);font-weight:600}
   <div class="modal-box" id="compareContent" style="max-width:800px"></div>
 </div>
 
-<footer>英语学习镜子 · 教师后台 · 数据每15秒自动刷新</footer>
+<footer><span class="gt">高途</span> · 教师后台 · 学生画像数据自动同步</footer>
 
 <script>
-// ==================== CONFIG ====================
-// ⚠ 部署时请替换为你的 Google Apps Script URL 和教师密钥
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5YXzKEO-wvloprePIOO9ba4A8Pj11oHDQ9H-uLtHOqMJXvyVia-5I_rSzprh4j4Hm/exec';
-const TEACHER_KEY      = 'class-x1h0lil5';
-// =================================================
-
+// ==================== FIREBASE ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
+  authDomain: "gaotu-diagnostic.firebaseapp.com",
+  projectId: "gaotu-diagnostic",
+  storageBucket: "gaotu-diagnostic.firebasestorage.app",
+  messagingSenderId: "109824619609",
+  appId: "1:109824619609:web:41f749de0021de4ad26d48"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const COLLECTION = 'students';
 let allStudents = [];
-let pollTimer = null;
 
 // ==================== DATA ====================
-function fetchData(){
-  fetch(APPS_SCRIPT_URL + '?action=list&key=' + encodeURIComponent(TEACHER_KEY))
-    .then(r => {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(data => {
-      if (data.error) { console.error('Server error:', data.error); return; }
-      allStudents = Array.isArray(data) ? data : [];
-      // Parse JSON fields & reconstruct std object
-      allStudents.forEach(s => {
-        if (typeof s.cogData === 'string') {
-          try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; }
-        }
-        if (typeof s.stylePrefs === 'string') {
-          try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; }
-        }
-        s.std = {
-          vocab: s.vocab, grammar: s.grammar, speed: s.speed,
-          intuition: s.intuition, express: s.express, adapt: s.adapt
-        };
-      });
-      // Cache to localStorage
-      localStorage.setItem('gt_eng_diag_teacher_cache', JSON.stringify(allStudents));
-      render();
-    })
-    .catch(err => {
-      console.error('Fetch failed:', err);
-      // Fallback to localStorage cache
-      var cached = localStorage.getItem('gt_eng_diag_teacher_cache');
-      if (cached) {
-        allStudents = JSON.parse(cached);
-        render();
-      }
+function listenToData(){
+  db.collection(COLLECTION).orderBy('timestamp','desc').onSnapshot(function(snap){
+    allStudents = [];
+    snap.forEach(function(doc){
+      var d = doc.data();
+      d.id = doc.id;
+      allStudents.push(d);
     });
-}
-
-function startPolling() {
-  fetchData();
-  pollTimer = setInterval(fetchData, 15000);
+    render();
+  }, function(err){
+    console.error('Firestore listen error:', err);
+    // Fallback to localStorage
+    allStudents = JSON.parse(localStorage.getItem('gt_eng_diag_students')||'[]');
+    render();
+  });
 }
 
 // ==================== RENDER ====================
@@ -533,35 +514,31 @@ function generateAdvice(filtered){
 
 function delOne(id){
   if(!confirm('确定删除这条诊断记录吗？'))return;
-  fetch(APPS_SCRIPT_URL + '?action=delete&key=' +
-    encodeURIComponent(TEACHER_KEY) + '&id=' + encodeURIComponent(id))
-    .then(r => r.json())
-    .then(resp => {
-      if (resp.error) { alert('删除失败: ' + resp.error); return; }
-      fetchData(); // Refresh
-    })
-    .catch(e => {
-      console.error('Delete failed:', e);
-      // Fallback: delete from local array
-      allStudents = allStudents.filter(function(s){return s.id != id;});
-      localStorage.setItem('gt_eng_diag_teacher_cache', JSON.stringify(allStudents));
-      render();
-    });
+  db.collection(COLLECTION).doc(id).delete().then(function(){
+    console.log('Deleted:', id);
+  }).catch(function(e){
+    console.error('Delete failed:', e);
+    // Fallback: delete from local array
+    allStudents = allStudents.filter(function(s){return s.id!==id;});
+    localStorage.setItem('gt_eng_diag_students', JSON.stringify(allStudents));
+    render();
+  });
 }
 function clearData(){
   if(!confirm('确定清空全部诊断数据吗？此操作不可恢复。'))return;
-  fetch(APPS_SCRIPT_URL + '?action=clear&key=' + encodeURIComponent(TEACHER_KEY))
-    .then(r => r.json())
-    .then(resp => {
-      if (resp.error) { alert('清空失败: ' + resp.error); return; }
-      fetchData(); // Refresh
-    })
-    .catch(e => {
-      console.error('Clear failed:', e);
-      localStorage.removeItem('gt_eng_diag_teacher_cache');
-      allStudents = [];
-      render();
-    });
+  // Batch delete from Firestore
+  var batch = db.batch();
+  allStudents.forEach(function(s){
+    batch.delete(db.collection(COLLECTION).doc(s.id));
+  });
+  batch.commit().then(function(){
+    console.log('All data cleared');
+  }).catch(function(e){
+    console.error('Clear failed:', e);
+    localStorage.removeItem('gt_eng_diag_students');
+    allStudents = [];
+    render();
+  });
 }
 function exportCSV(){
   const d=allStudents;if(!d.length){alert('暂无数据');return;}
@@ -578,18 +555,8 @@ function exportCSV(){
   a.download='英语画像_班级数据_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 
-// Init — prompt for teacher key if not configured
-window.addEventListener('DOMContentLoaded', function() {
-  if (TEACHER_KEY === 'YOUR_TEACHER_KEY_HERE') {
-    var key = prompt('🔑 请输入教师密钥（由老师在 Google Sheets 中设置）：');
-    if (key) { TEACHER_KEY = key.trim(); }
-  }
-  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-    var url = prompt('🔗 请输入 Google Apps Script URL：');
-    if (url) { APPS_SCRIPT_URL = url.trim(); }
-  }
-  startPolling();
-});
+// Init
+listenToData();
 </script>
 </body>
 </html>

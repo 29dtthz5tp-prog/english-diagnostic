@@ -188,6 +188,8 @@ body{
 
 .muted{font-size:.8em;color:var(--g500);text-align:center;margin-top:8px}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -263,11 +265,19 @@ body{
 
 </div><!-- wrap -->
 
-
 <script>
-// ==================== CONFIG ====================
-// ⚠ 部署时请将下面的 URL 替换为你的 Google Apps Script Web App URL
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5YXzKEO-wvloprePIOO9ba4A8Pj11oHDQ9H-uLtHOqMJXvyVia-5I_rSzprh4j4Hm/exec';
+// ==================== FIREBASE ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
+  authDomain: "gaotu-diagnostic.firebaseapp.com",
+  projectId: "gaotu-diagnostic",
+  storageBucket: "gaotu-diagnostic.firebasestorage.app",
+  messagingSenderId: "109824619609",
+  appId: "1:109824619609:web:41f749de0021de4ad26d48"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const COLLECTION = 'students';
 // =================================================
 
 // ==================== STATE ====================
@@ -692,8 +702,22 @@ async function showResults(){
   h+='</div>';
 
   h+='</div>'; // close r-body
-  const prev=await getPreviousRecord();
-  saveToStorage(std,inputScore,outputScore,gap,type);
+  const prev = await getPreviousRecord();
+  // Save to Firestore with feedback
+  var legacyEl = document.getElementById('legacyMsg');
+  if (legacyEl) legacyEl.innerHTML = '⏳ 正在保存你的诊断报告...';
+  try {
+    var saveResult = await saveToStorage(std,inputScore,outputScore,gap,type);
+    if (legacyEl) {
+      if (saveResult && saveResult.success) {
+        legacyEl.innerHTML = '✅ 报告已保存成功，老师可以看到啦！';
+      } else {
+        legacyEl.innerHTML = '💾 报告已保存在本地，联网后将自动同步给老师';
+      }
+    }
+  } catch(e) {
+    if (legacyEl) legacyEl.innerHTML = '💾 报告已保存在本地，联网后将自动同步给老师';
+  }
   if(prev){
     h+='<div style="margin-top:16px;background:#fff;border-radius:16px;padding:20px 24px;border:2px solid #E8F5E9">';
     h+='<h3 style="color:#16A34A;margin-bottom:12px">📈 学期对比 · '+prev.date+' → '+new Date().toISOString().slice(0,10)+'</h3>';
@@ -713,9 +737,6 @@ async function showResults(){
     h+='</div>';
   }
   h+='</div>'; // close r-card
-
-  document.getElementById('reportWrap').innerHTML = h;
-  switchScr('scr-results');
 
 // ---- Dimension-level comments ----
 function dimComment(k,v){
@@ -817,33 +838,39 @@ function closingMessage(type,std){
   };
   return msgs[type.id]||'你有自己的学习节奏和特点，这就是你最大的优势。保持好奇，保持尝试，你会看到自己的进步。';
 }
-} // close showResults
 // ==================== STORAGE (Google Apps Script) ====================
 
 async function getPreviousRecord(){
-  try{
-    const resp = await fetch(APPS_SCRIPT_URL + '?action=history&name=' +
-      encodeURIComponent(stuName) + '&grade=' + encodeURIComponent(stuGrade));
-    const data = await resp.json();
-    if (data && data.name) {
-      // Reconstruct std object from flat fields
+  try {
+    const snap = await db.collection(COLLECTION)
+      .where('name','==',stuName)
+      .where('grade','==',stuGrade)
+      .orderBy('timestamp','desc')
+      .limit(1)
+      .get();
+    if (!snap.empty) {
+      const doc = snap.docs[0];
+      const data = doc.data();
+      data.id = doc.id;
       data.std = {
-        vocab: data.vocab, grammar: data.grammar, speed: data.speed,
-        intuition: data.intuition, express: data.express, adapt: data.adapt
+        vocab: data.vocab || 0, grammar: data.grammar || 0, speed: data.speed || 0,
+        intuition: data.intuition || 0, express: data.express || 0, adapt: data.adapt || 0
       };
       data.type = data.typeId;
       return data;
     }
     return null;
-  }catch(e){
-    console.error('Query failed, using localStorage fallback:',e);
-    const students=JSON.parse(localStorage.getItem('gt_eng_diag_students')||'[]');
-    const mine=students.filter(s=>s.name===stuName&&s.grade===stuGrade);
-    return mine.length>0?mine[mine.length-1]:null;
+  } catch(e) {
+    console.error('Firestore query failed, using localStorage fallback:', e);
+    try {
+      const students = JSON.parse(localStorage.getItem('gt_eng_diag_students') || '[]');
+      const mine = students.filter(s => s.name === stuName && s.grade === stuGrade);
+      return mine.length > 0 ? mine[mine.length - 1] : null;
+    } catch(_) { return null; }
   }
 }
 
-function saveToStorage(std,inputScore,outputScore,gap,type){
+async function saveToStorage(std,inputScore,outputScore,gap,type){
   const data={
     name:stuName,grade:stuGrade,
     date:new Date().toISOString().slice(0,10),
@@ -858,41 +885,45 @@ function saveToStorage(std,inputScore,outputScore,gap,type){
     timestamp:new Date().toISOString()
   };
 
-  return fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(r => r.json()).then(r => {
-    console.log('Saved to Apps Script, row:', r.row);
-  }).catch(function(e){
-    console.error('Submit failed, saving locally:',e);
-    // localStorage fallback
-    const key='gt_eng_diag_students';
-    let students=JSON.parse(localStorage.getItem(key)||'[]');
-    students.push({id:Date.now(),std,inputScore,outputScore,gap,type:type.id,typeName:type.name,typeIcon:type.icon,cogData,stylePrefs,...data});
-    localStorage.setItem(key,JSON.stringify(students));
-    // Also queue for retry
-    const pqKey='gt_eng_diag_pending';
-    let pending=JSON.parse(localStorage.getItem(pqKey)||'[]');
+  // Always save to localStorage first (backup)
+  var localStudents = [];
+  try { localStudents = JSON.parse(localStorage.getItem('gt_eng_diag_students') || '[]'); } catch(_) {}
+  var dup = localStudents.some(function(s){ return s.name===data.name && s.grade===data.grade && s.date===data.date; });
+  if (!dup) { localStudents.push(data); localStorage.setItem('gt_eng_diag_students', JSON.stringify(localStudents)); }
+
+  try {
+    // Write to Firestore (teacher listens here!)
+    await db.collection(COLLECTION).add(data);
+    console.log('✅ Saved to Firestore');
+    return { success: true };
+  } catch(e) {
+    console.warn('⚠️ Firestore save failed, kept in local storage:', e.message);
+    // Queue for retry
+    var pending = [];
+    try { pending = JSON.parse(localStorage.getItem('gt_eng_diag_pending') || '[]'); } catch(_) {}
     pending.push(data);
-    localStorage.setItem(pqKey,JSON.stringify(pending));
-  });
+    localStorage.setItem('gt_eng_diag_pending', JSON.stringify(pending));
+    return { success: false, local: true, error: e.message };
+  }
 }
 
 // Retry pending submissions on page load
-(function flushPending(){
+(async function flushPending(){
   const pqKey='gt_eng_diag_pending';
-  const pending=JSON.parse(localStorage.getItem(pqKey)||'[]');
-  if(!pending.length) return;
-  fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(pending[0])
-  }).then(r => r.json()).then(() => {
-    pending.shift();
-    localStorage.setItem(pqKey, JSON.stringify(pending));
-    if(pending.length) flushPending();
-  }).catch(() => { /* leave for next page load */ });
+  var pending = [];
+  try { pending = JSON.parse(localStorage.getItem(pqKey) || '[]'); } catch(_) {}
+  if (!pending.length) return;
+  for (var i = pending.length - 1; i >= 0; i--) {
+    try {
+      await db.collection(COLLECTION).add(pending[i]);
+      pending.splice(i, 1);
+      localStorage.setItem(pqKey, JSON.stringify(pending));
+      console.log('✅ Retry saved to Firestore');
+    } catch(e) {
+      console.warn('Retry still failing, will try next page load');
+      break;
+    }
+  }
 })();
 
 function restart(){
