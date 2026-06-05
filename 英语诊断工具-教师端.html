@@ -147,13 +147,12 @@ footer .gt{color:var(--r);font-weight:600}
 .adv-item h4{font-size:.9em;color:var(--r);margin-bottom:4px}
 .adv-action{background:var(--r-light);border-radius:8px;padding:10px 14px;margin-top:6px;font-size:.84em}
 </style>
-<!-- Firebase removed - using localStorage only -->
 </head>
 <body>
 
 <div class="topbar">
   <h1>📊 班级英语画像总览</h1>
-  <div class="sub" id="syncStatus">⏳ 正在连接云端...</div>
+  <div class="sub">教师后台 &nbsp;|&nbsp; 数据每15秒自动刷新</div>
 </div>
 
 <div class="wrap">
@@ -178,6 +177,7 @@ footer .gt{color:var(--r);font-weight:600}
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
     <h2 style="margin:0">👨‍🎓 学员记录</h2>
     <div class="btn-row">
+      <button class="btn btn-sec btn-sm" onclick="fetchData()">🔄 刷新</button>
       <button class="btn btn-pri btn-sm" onclick="exportCSV()">📥 导出 CSV</button>
       <button class="btn btn-red btn-sm" onclick="clearData()">🗑 清空</button>
     </div>
@@ -207,113 +207,128 @@ footer .gt{color:var(--r);font-weight:600}
   <div class="modal-box" id="compareContent" style="max-width:800px"></div>
 </div>
 
-<footer><span class="gt">高途</span> · 教师后台 · 学生画像数据自动同步</footer>
+<footer>英语学习镜子 · 教师后台 · 数据每15秒自动刷新</footer>
 
 <script>
-// ==================== FIREBASE (with CDN-fail fallback) ====================
-var db = null;
-var COLLECTION = 'students';
-var firebaseAvailable = false;
-
-try {
-  if (typeof firebase !== 'undefined') {
-    firebase.initializeApp({
-      apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
-      authDomain: "gaotu-diagnostic.firebaseapp.com",
-      projectId: "gaotu-diagnostic",
-      storageBucket: "gaotu-diagnostic.firebasestorage.app",
-      messagingSenderId: "109824619609",
-      appId: "1:109824619609:web:41f749de0021de4ad26d48"
-    });
-    db = firebase.firestore();
-    firebaseAvailable = true;
-  }
-} catch(e) {
-  console.warn('Firebase init failed, using localStorage only:', e.message);
-}
+// ==================== CONFIG ====================
+// ⚠ 部署时请替换为你的 Google Apps Script URL 和教师密钥
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5YXzKEO-wvloprePIOO9ba4A8Pj11oHDQ9H-uLtHOqMJXvyVia-5I_rSzprh4j4Hm/exec';
+const TEACHER_KEY      = 'class-x1h0lil5';
 // =================================================
+
 let allStudents = [];
+let pollTimer = null;
 
 // ==================== DATA ====================
-function loadLocalData() {
-  var local = [];
+function loadLocalStudents(){
+  // Read student localStorage (data saved from student.html)
+  var localStudents = [];
   try {
     var raw = localStorage.getItem('gt_eng_diag_students');
-    if (raw) { local = JSON.parse(raw); }
-  } catch(_) {}
-  // Normalize
-  local.forEach(function(s, i) {
-    if (!s.id) s.id = 90000 + i;
-    if (!s.vocab && s.std) { s.vocab = s.std.vocab || 0; s.grammar = s.std.grammar || 0; s.speed = s.std.speed || 0; s.intuition = s.std.intuition || 0; s.express = s.std.express || 0; s.adapt = s.std.adapt || 0; }
-    if (!s.inputScore) s.inputScore = 0;
-    if (!s.outputScore) s.outputScore = 0;
-    if (!s.gap) s.gap = 0;
-    if (!s.date) s.date = s.timestamp ? s.timestamp.slice(0, 10) : '';
-    if (!s.typeId) s.typeId = s.type || '';
-    if (!s.typeName) s.typeName = s.type || '';
-    if (!s.typeIcon) s.typeIcon = '';
-    if (!s.weakKey) s.weakKey = '';
-    if (!s.strongKey) s.strongKey = '';
-    if (Array.isArray(s.cogData)) { s.cogData = s.cogData; }
-    else if (typeof s.cogData === 'string') { try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; } }
-    else { s.cogData = []; }
-    if (Array.isArray(s.stylePrefs)) { s.stylePrefs = s.stylePrefs; }
-    else if (typeof s.stylePrefs === 'string') { try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; } }
-    else { s.stylePrefs = []; }
-    s.std = { vocab: s.vocab || 0, grammar: s.grammar || 0, speed: s.speed || 0, intuition: s.intuition || 0, express: s.express || 0, adapt: s.adapt || 0 };
-  });
-  return local;
+    if (raw) {
+      localStudents = JSON.parse(raw);
+      // Normalize to same format as server data
+      localStudents.forEach(function(s, i) {
+        // Ensure id exists
+        if (!s.id) s.id = 90000 + i;
+        // Ensure flat fields exist (may be in nested std object or spread)
+        if (!s.vocab && s.std) { s.vocab = s.std.vocab || 0; s.grammar = s.std.grammar || 0; s.speed = s.std.speed || 0; s.intuition = s.std.intuition || 0; s.express = s.std.express || 0; s.adapt = s.std.adapt || 0; }
+        if (!s.inputScore) s.inputScore = 0;
+        if (!s.outputScore) s.outputScore = 0;
+        if (!s.gap) s.gap = 0;
+        if (!s.date) s.date = s.timestamp ? s.timestamp.slice(0, 10) : '';
+        if (!s.typeId) s.typeId = s.type || '';
+        if (!s.typeName) s.typeName = s.type || '';
+        if (!s.typeIcon) s.typeIcon = '';
+        if (!s.weakKey) s.weakKey = '';
+        if (!s.strongKey) s.strongKey = '';
+        // Normalize cogData: may be array or JSON string
+        if (Array.isArray(s.cogData)) {
+          s.cogData = s.cogData;
+        } else if (typeof s.cogData === 'string') {
+          try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; }
+        } else {
+          s.cogData = [];
+        }
+        // Normalize stylePrefs
+        if (Array.isArray(s.stylePrefs)) {
+          s.stylePrefs = s.stylePrefs;
+        } else if (typeof s.stylePrefs === 'string') {
+          try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; }
+        } else {
+          s.stylePrefs = [];
+        }
+        // Reconstruct std object
+        s.std = {
+          vocab: s.vocab || 0, grammar: s.grammar || 0, speed: s.speed || 0,
+          intuition: s.intuition || 0, express: s.express || 0, adapt: s.adapt || 0
+        };
+      });
+    }
+  } catch(_) { localStudents = []; }
+  return localStudents;
 }
 
-function mergeData(serverData, localData) {
+function mergeAndDedup(serverList, localList) {
   var seen = {};
   var merged = [];
-  (serverData || []).forEach(function(s) {
+  (serverList || []).forEach(function(s) {
     var key = s.name + '|||' + s.grade + '|||' + s.date;
     if (!seen[key]) { seen[key] = true; merged.push(s); }
   });
-  (localData || []).forEach(function(s) {
+  (localList || []).forEach(function(s) {
     var key = s.name + '|||' + s.grade + '|||' + s.date;
     if (!seen[key]) { seen[key] = true; merged.push(s); }
   });
   return merged;
 }
 
-function listenToData(){
-  var localData = loadLocalData();
-  var statusEl = document.getElementById('syncStatus');
+function fetchData(){
+  var localStudents = loadLocalStudents();
 
-  if (!firebaseAvailable || !db) {
-    // Firebase not available — use localStorage only
-    allStudents = localData;
-    if (statusEl) { statusEl.innerHTML = '💾 离线模式 · 本机数据 · ' + allStudents.length + ' 条记录'; statusEl.style.color = '#FF8C42'; }
-    render();
-    return;
-  }
-
-  db.collection(COLLECTION).orderBy('timestamp','desc').onSnapshot(function(snap){
-    var serverData = [];
-    snap.forEach(function(doc){
-      var d = doc.data();
-      d.id = doc.id;
-      d.std = { vocab: d.vocab || 0, grammar: d.grammar || 0, speed: d.speed || 0, intuition: d.intuition || 0, express: d.express || 0, adapt: d.adapt || 0 };
-      if (typeof d.cogData === 'string') { try { d.cogData = JSON.parse(d.cogData); } catch(_) { d.cogData = []; } }
-      if (typeof d.stylePrefs === 'string') { try { d.stylePrefs = JSON.parse(d.stylePrefs); } catch(_) { d.stylePrefs = []; } }
-      serverData.push(d);
+  fetch(APPS_SCRIPT_URL + '?action=list&key=' + encodeURIComponent(TEACHER_KEY))
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => {
+      if (data.error) { console.error('Server error:', data.error); }
+      var serverStudents = (data && !data.error && Array.isArray(data)) ? data : [];
+      // Parse JSON fields & reconstruct std object
+      serverStudents.forEach(s => {
+        if (typeof s.cogData === 'string') {
+          try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; }
+        }
+        if (typeof s.stylePrefs === 'string') {
+          try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; }
+        }
+        s.std = {
+          vocab: s.vocab, grammar: s.grammar, speed: s.speed,
+          intuition: s.intuition, express: s.express, adapt: s.adapt
+        };
+      });
+      // Merge server + local, deduplicate
+      allStudents = mergeAndDedup(serverStudents, localStudents);
+      // Cache merged result
+      localStorage.setItem('gt_eng_diag_teacher_cache', JSON.stringify(allStudents));
+      render();
+    })
+    .catch(err => {
+      console.error('Fetch failed:', err);
+      // Fallback: merge teacher cache + student local data
+      var cached = [];
+      try {
+        var c = localStorage.getItem('gt_eng_diag_teacher_cache');
+        if (c) cached = JSON.parse(c);
+      } catch(_) {}
+      allStudents = mergeAndDedup(cached, localStudents);
+      if (allStudents.length) render();
     });
-    // ALWAYS merge with local data
-    allStudents = mergeData(serverData, localData);
-    if (statusEl) statusEl.innerHTML = '✅ 云端连接正常 · ' + allStudents.length + ' 条记录';
-    if (statusEl) statusEl.style.color = '#16A34A';
-    render();
-  }, function(err){
-    console.error('Firestore error:', err);
-    // Firebase failed — use localStorage only
-    allStudents = localData;
-    if (statusEl) statusEl.innerHTML = '⚠️ 云端连接失败，显示本地数据 · ' + allStudents.length + ' 条记录';
-    if (statusEl) statusEl.style.color = '#FF8C42';
-    render();
-  });
+}
+
+function startPolling() {
+  fetchData();
+  pollTimer = setInterval(fetchData, 15000);
 }
 
 // ==================== RENDER ====================
@@ -587,31 +602,35 @@ function generateAdvice(filtered){
 
 function delOne(id){
   if(!confirm('确定删除这条诊断记录吗？'))return;
-  db.collection(COLLECTION).doc(id).delete().then(function(){
-    console.log('Deleted:', id);
-  }).catch(function(e){
-    console.error('Delete failed:', e);
-    // Fallback: delete from local array
-    allStudents = allStudents.filter(function(s){return s.id!==id;});
-    localStorage.setItem('gt_eng_diag_students', JSON.stringify(allStudents));
-    render();
-  });
+  fetch(APPS_SCRIPT_URL + '?action=delete&key=' +
+    encodeURIComponent(TEACHER_KEY) + '&id=' + encodeURIComponent(id))
+    .then(r => r.json())
+    .then(resp => {
+      if (resp.error) { alert('删除失败: ' + resp.error); return; }
+      fetchData(); // Refresh
+    })
+    .catch(e => {
+      console.error('Delete failed:', e);
+      // Fallback: delete from local array
+      allStudents = allStudents.filter(function(s){return s.id != id;});
+      localStorage.setItem('gt_eng_diag_teacher_cache', JSON.stringify(allStudents));
+      render();
+    });
 }
 function clearData(){
   if(!confirm('确定清空全部诊断数据吗？此操作不可恢复。'))return;
-  // Batch delete from Firestore
-  var batch = db.batch();
-  allStudents.forEach(function(s){
-    batch.delete(db.collection(COLLECTION).doc(s.id));
-  });
-  batch.commit().then(function(){
-    console.log('All data cleared');
-  }).catch(function(e){
-    console.error('Clear failed:', e);
-    localStorage.removeItem('gt_eng_diag_students');
-    allStudents = [];
-    render();
-  });
+  fetch(APPS_SCRIPT_URL + '?action=clear&key=' + encodeURIComponent(TEACHER_KEY))
+    .then(r => r.json())
+    .then(resp => {
+      if (resp.error) { alert('清空失败: ' + resp.error); return; }
+      fetchData(); // Refresh
+    })
+    .catch(e => {
+      console.error('Clear failed:', e);
+      localStorage.removeItem('gt_eng_diag_teacher_cache');
+      allStudents = [];
+      render();
+    });
 }
 function exportCSV(){
   const d=allStudents;if(!d.length){alert('暂无数据');return;}
@@ -628,8 +647,18 @@ function exportCSV(){
   a.download='英语画像_班级数据_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 
-// Init
-listenToData();
+// Init — prompt for teacher key if not configured
+window.addEventListener('DOMContentLoaded', function() {
+  if (TEACHER_KEY === 'YOUR_TEACHER_KEY_HERE') {
+    var key = prompt('🔑 请输入教师密钥（由老师在 Google Sheets 中设置）：');
+    if (key) { TEACHER_KEY = key.trim(); }
+  }
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    var url = prompt('🔗 请输入 Google Apps Script URL：');
+    if (url) { APPS_SCRIPT_URL = url.trim(); }
+  }
+  startPolling();
+});
 </script>
 </body>
 </html>

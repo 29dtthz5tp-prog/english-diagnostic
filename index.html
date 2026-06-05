@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -255,36 +255,20 @@ body{
 <!-- ====== RESULTS ====== -->
 <div class="scr" id="scr-results">
   <div id="reportWrap"></div>
+  <div id="saveStatus" style="text-align:center;padding:14px 20px;margin:16px 0;border-radius:14px;font-size:.88em;font-weight:600;display:none"></div>
   <div class="btn-row" style="margin-top:18px">
     <button class="btn btn-out" onclick="restart()">🔄 再测一次</button>
   </div>
-  <div class="muted">你的报告已自动保存，老师可以看到哦</div>
+  <div class="muted" id="legacyMsg">你的报告已自动保存，老师可以看到哦</div>
 </div>
 
 </div><!-- wrap -->
 
-<script>
-// ==================== FIREBASE (with CDN-fail fallback) ====================
-var db = null;
-var COLLECTION = 'students';
-var firebaseAvailable = false;
 
-try {
-  if (typeof firebase !== 'undefined') {
-    firebase.initializeApp({
-      apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
-      authDomain: "gaotu-diagnostic.firebaseapp.com",
-      projectId: "gaotu-diagnostic",
-      storageBucket: "gaotu-diagnostic.firebasestorage.app",
-      messagingSenderId: "109824619609",
-      appId: "1:109824619609:web:41f749de0021de4ad26d48"
-    });
-    db = firebase.firestore();
-    firebaseAvailable = true;
-  }
-} catch(e) {
-  console.warn('Firebase init failed, using localStorage only:', e.message);
-}
+<script>
+// ==================== CONFIG ====================
+// ⚠ 部署时请将下面的 URL 替换为你的 Google Apps Script Web App URL
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5YXzKEO-wvloprePIOO9ba4A8Pj11oHDQ9H-uLtHOqMJXvyVia-5I_rSzprh4j4Hm/exec';
 // =================================================
 
 // ==================== STATE ====================
@@ -709,41 +693,56 @@ async function showResults(){
   h+='</div>';
 
   h+='</div>'; // close r-body
-  const prev = await getPreviousRecord();
-  // Save to Firestore with feedback
-  var legacyEl = document.getElementById('legacyMsg');
-  if (legacyEl) legacyEl.innerHTML = '⏳ 正在保存你的诊断报告...';
-  try {
-    var saveResult = await saveToStorage(std,inputScore,outputScore,gap,type);
-    if (legacyEl) {
-      if (saveResult && saveResult.success) {
-        legacyEl.innerHTML = '✅ 报告已保存成功，老师可以看到啦！';
-      } else {
-        legacyEl.innerHTML = '💾 报告已保存在本地，联网后将自动同步给老师';
-      }
-    }
-  } catch(e) {
-    if (legacyEl) legacyEl.innerHTML = '💾 报告已保存在本地，联网后将自动同步给老师';
-  }
-  if(prev){
-    h+='<div style="margin-top:16px;background:#fff;border-radius:16px;padding:20px 24px;border:2px solid #E8F5E9">';
-    h+='<h3 style="color:#16A34A;margin-bottom:12px">📈 学期对比 · '+prev.date+' → '+new Date().toISOString().slice(0,10)+'</h3>';
-    const dimKeys=['vocab','grammar','speed','intuition','express','adapt'];
-    dimKeys.forEach(k=>{
-      const delta=std[k]-prev.std[k];
-      const arrow=delta>=8?'<span style="color:#16A34A;font-weight:700">↑'+delta+'</span>':delta<=-8?'<span style="color:#E54545;font-weight:700">↓'+Math.abs(delta)+'</span>':'<span style="color:#999">→0</span>';
-      h+='<div style="margin:8px 0"><div style="display:flex;align-items:center;gap:8px;font-size:.82em;color:var(--g600)"><span style="width:70px">'+dimIcons[k]+' '+dimNames[k]+'</span>';
-      h+='<div style="flex:1;height:14px;background:#eee;border-radius:7px;overflow:hidden;display:flex"><div style="width:'+prev.std[k]+'%;background:#ccc;height:100%;border-radius:7px 0 0 7px"></div><div style="width:'+(std[k]-prev.std[k])+'%;background:'+(delta>=0?'#4CAF50':'#EF9A9A')+';height:100%;min-width:0"></div></div>';
-      h+='<span style="width:36px;text-align:center;font-weight:600">'+std[k]+'</span> '+arrow+'</div></div>';
-    });
-    const improved=dimKeys.filter(k=>std[k]-prev.std[k]>=8).length;
-    const declined=dimKeys.filter(k=>std[k]-prev.std[k]<=-8).length;
-    if(improved>0) h+='<p style="margin-top:10px;font-size:.82em;color:#16A34A">✅ '+improved+'个维度明显进步，继续加油！</p>';
-    if(declined>0) h+='<p style="font-size:.82em;color:var(--r)">⚠ '+declined+'个维度有所回落，建议和老师聊聊原因～</p>';
-    if(improved===0&&declined===0) h+='<p style="font-size:.82em;color:var(--g500)">各维度变化不大，建议调整学习策略试试新方法~</p>';
-    h+='</div>';
-  }
+  h+='<div id="historyCompare"></div>';
   h+='</div>'; // close r-card
+
+  // Render results immediately
+  document.getElementById('reportWrap').innerHTML = h;
+  switchScr('scr-results');
+  document.getElementById('legacyMsg').style.display = 'none';
+
+  // ---- Save to server with user-visible feedback ----
+  showSaveStatus('saving');
+  try {
+    const saveResult = await saveToStorage(std,inputScore,outputScore,gap,type);
+    if (saveResult.success) {
+      showSaveStatus('success');
+    } else if (saveResult.local) {
+      showSaveStatus('local');
+    } else {
+      showSaveStatus('error');
+    }
+  } catch(saveErr) {
+    console.error('saveToStorage threw:', saveErr);
+    showSaveStatus('error');
+  }
+
+  // ---- Load history comparison (non-critical, after save) ----
+  try {
+    const prev = await getPreviousRecord();
+    if (prev && prev.std) {
+      const dimKeys=['vocab','grammar','speed','intuition','express','adapt'];
+      let histHTML='<div style="margin-top:16px;background:#fff;border-radius:16px;padding:20px 24px;border:2px solid #E8F5E9">';
+      histHTML+='<h3 style="color:#16A34A;margin-bottom:12px">📈 学期对比 · '+prev.date+' → '+new Date().toISOString().slice(0,10)+'</h3>';
+      dimKeys.forEach(k=>{
+        const delta=std[k]-prev.std[k];
+        const arrow=delta>=8?'<span style="color:#16A34A;font-weight:700">↑'+delta+'</span>':delta<=-8?'<span style="color:#E54545;font-weight:700">↓'+Math.abs(delta)+'</span>':'<span style="color:#999">→0</span>';
+        histHTML+='<div style="margin:8px 0"><div style="display:flex;align-items:center;gap:8px;font-size:.82em;color:var(--g600)"><span style="width:70px">'+dimIcons[k]+' '+dimNames[k]+'</span>';
+        histHTML+='<div style="flex:1;height:14px;background:#eee;border-radius:7px;overflow:hidden;display:flex"><div style="width:'+prev.std[k]+'%;background:#ccc;height:100%;border-radius:7px 0 0 7px"></div><div style="width:'+(std[k]-prev.std[k])+'%;background:'+(delta>=0?'#4CAF50':'#EF9A9A')+';height:100%;min-width:0"></div></div>';
+        histHTML+='<span style="width:36px;text-align:center;font-weight:600">'+std[k]+'</span> '+arrow+'</div></div>';
+      });
+      const improved=dimKeys.filter(k=>std[k]-prev.std[k]>=8).length;
+      const declined=dimKeys.filter(k=>std[k]-prev.std[k]<=-8).length;
+      if(improved>0) histHTML+='<p style="margin-top:10px;font-size:.82em;color:#16A34A">✅ '+improved+'个维度明显进步，继续加油！</p>';
+      if(declined>0) histHTML+='<p style="font-size:.82em;color:var(--r)">⚠ '+declined+'个维度有所回落，建议和老师聊聊原因～</p>';
+      if(improved===0&&declined===0) histHTML+='<p style="font-size:.82em;color:var(--g500)">各维度变化不大，建议调整学习策略试试新方法~</p>';
+      histHTML+='</div>';
+      const histEl = document.getElementById('historyCompare');
+      if (histEl) histEl.innerHTML = histHTML;
+    }
+  } catch(histErr) {
+    console.error('History comparison failed:', histErr);
+  }
 
 // ---- Dimension-level comments ----
 function dimComment(k,v){
@@ -849,40 +848,30 @@ function closingMessage(type,std){
 // ==================== STORAGE (Google Apps Script) ====================
 
 async function getPreviousRecord(){
-  if (!firebaseAvailable || !db) {
-    // Firebase not available, use localStorage only
-    try {
-      const students = JSON.parse(localStorage.getItem('gt_eng_diag_students') || '[]');
-      const mine = students.filter(s => s.name === stuName && s.grade === stuGrade);
-      return mine.length > 0 ? mine[mine.length - 1] : null;
-    } catch(_) { return null; }
-  }
-  try {
-    const snap = await db.collection(COLLECTION)
-      .where('name','==',stuName)
-      .where('grade','==',stuGrade)
-      .orderBy('timestamp','desc')
-      .limit(1)
-      .get();
-    if (!snap.empty) {
-      const doc = snap.docs[0];
-      const data = doc.data();
-      data.id = doc.id;
+  try{
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=history&name=' +
+      encodeURIComponent(stuName) + '&grade=' + encodeURIComponent(stuGrade));
+    const data = await resp.json();
+    if (data && data.name) {
+      // Reconstruct std object from flat fields
       data.std = {
-        vocab: data.vocab || 0, grammar: data.grammar || 0, speed: data.speed || 0,
-        intuition: data.intuition || 0, express: data.express || 0, adapt: data.adapt || 0
+        vocab: data.vocab, grammar: data.grammar, speed: data.speed,
+        intuition: data.intuition, express: data.express, adapt: data.adapt
       };
       data.type = data.typeId;
       return data;
     }
     return null;
-  } catch(e) {
-    console.error('Firestore query failed, using localStorage fallback:', e);
+  }catch(e){
+    console.error('Query failed, using localStorage fallback:',e);
     try {
-      const students = JSON.parse(localStorage.getItem('gt_eng_diag_students') || '[]');
-      const mine = students.filter(s => s.name === stuName && s.grade === stuGrade);
-      return mine.length > 0 ? mine[mine.length - 1] : null;
-    } catch(_) { return null; }
+      const students=JSON.parse(localStorage.getItem('gt_eng_diag_students')||'[]');
+      const mine=students.filter(s=>s.name===stuName&&s.grade===stuGrade);
+      return mine.length>0?mine[mine.length-1]:null;
+    } catch(e2) {
+      console.error('LocalStorage fallback also failed:', e2);
+      return null;
+    }
   }
 }
 
@@ -901,51 +890,100 @@ async function saveToStorage(std,inputScore,outputScore,gap,type){
     timestamp:new Date().toISOString()
   };
 
-  // Always save to localStorage first (backup)
-  var localStudents = [];
-  try { localStudents = JSON.parse(localStorage.getItem('gt_eng_diag_students') || '[]'); } catch(_) {}
-  var dup = localStudents.some(function(s){ return s.name===data.name && s.grade===data.grade && s.date===data.date; });
-  if (!dup) { localStudents.push(data); localStorage.setItem('gt_eng_diag_students', JSON.stringify(localStudents)); }
-
-  if (!firebaseAvailable || !db) {
-    console.log('📦 Saved to localStorage (Firebase not available)');
-    return { success: false, local: true, error: 'Firebase not available' };
-  }
+  // Always save to localStorage first (so teacher can always read it)
+  saveToLocalStorage(data);
 
   try {
-    // Write to Firestore (teacher listens here!)
-    await db.collection(COLLECTION).add(data);
-    console.log('✅ Saved to Firestore');
-    return { success: true };
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await resp.json();
+    if (result && result.success) {
+      console.log('✅ Saved to Apps Script, row:', result.row);
+      return { success: true, server: true, row: result.row };
+    }
+    // Server returned an error
+    throw new Error(result.error || 'Server returned non-success');
   } catch(e) {
-    console.warn('⚠️ Firestore save failed, kept in local storage:', e.message);
-    // Queue for retry
-    var pending = [];
-    try { pending = JSON.parse(localStorage.getItem('gt_eng_diag_pending') || '[]'); } catch(_) {}
-    pending.push(data);
-    localStorage.setItem('gt_eng_diag_pending', JSON.stringify(pending));
+    console.warn('⚠️ Submit to server failed, kept in local storage:', e.message);
+    // Already saved locally above, just queue for retry
+    queueForRetry(data);
     return { success: false, local: true, error: e.message };
   }
 }
 
-// Retry pending submissions on page load
-(async function flushPending(){
-  if (!firebaseAvailable || !db) return;
-  const pqKey='gt_eng_diag_pending';
-  var pending = [];
-  try { pending = JSON.parse(localStorage.getItem(pqKey) || '[]'); } catch(_) {}
-  if (!pending.length) return;
-  for (var i = pending.length - 1; i >= 0; i--) {
-    try {
-      await db.collection(COLLECTION).add(pending[i]);
-      pending.splice(i, 1);
-      localStorage.setItem(pqKey, JSON.stringify(pending));
-      console.log('✅ Retry saved to Firestore');
-    } catch(e) {
-      console.warn('Retry still failing, will try next page load');
-      break;
-    }
+function saveToLocalStorage(data) {
+  const key = 'gt_eng_diag_students';
+  var students = [];
+  try { students = JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) { students = []; }
+  // Avoid duplicate entries (same name + grade + date)
+  var exists = students.some(function(s) {
+    return s.name === data.name && s.grade === data.grade && s.date === data.date;
+  });
+  if (!exists) {
+    students.push(data);
+    try { localStorage.setItem(key, JSON.stringify(students)); } catch(_) {}
   }
+}
+
+function queueForRetry(data) {
+  const pqKey = 'gt_eng_diag_pending';
+  var pending = [];
+  try { pending = JSON.parse(localStorage.getItem(pqKey) || '[]'); } catch(_) { pending = []; }
+  var exists = pending.some(function(p) {
+    return p.name === data.name && p.grade === data.grade && p.date === data.date;
+  });
+  if (!exists) {
+    pending.push(data);
+    try { localStorage.setItem(pqKey, JSON.stringify(pending)); } catch(_) {}
+  }
+}
+
+function showSaveStatus(state){
+  const el = document.getElementById('saveStatus');
+  if(!el) return;
+  el.style.display = 'block';
+  switch(state){
+    case 'saving':
+      el.style.background = '#FFFDF5';
+      el.style.color = '#B45309';
+      el.innerHTML = '⏳ 正在保存你的诊断报告...';
+      break;
+    case 'success':
+      el.style.background = '#F0FDF4';
+      el.style.color = '#16A34A';
+      el.innerHTML = '✅ 报告已保存成功，老师可以看到啦！';
+      break;
+    case 'local':
+      el.style.background = '#FFF8F5';
+      el.style.color = '#FF8C42';
+      el.innerHTML = '💾 报告已保存在本地，联网后将自动同步给老师';
+      break;
+    case 'error':
+      el.style.background = '#FEF2F2';
+      el.style.color = '#E54545';
+      el.innerHTML = '❌ 保存失败，请检查网络后刷新页面重试';
+      break;
+  }
+}
+
+// Retry pending submissions on page load
+(function flushPending(){
+  const pqKey='gt_eng_diag_pending';
+  let pending=[];
+  try { pending = JSON.parse(localStorage.getItem(pqKey)||'[]'); } catch(_){}
+  if(!pending.length) return;
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pending[0])
+  }).then(r => r.json()).then(() => {
+    pending.shift();
+    localStorage.setItem(pqKey, JSON.stringify(pending));
+    if(pending.length) flushPending();
+  }).catch(() => { /* leave for next page load */ });
 })();
 
 function restart(){
