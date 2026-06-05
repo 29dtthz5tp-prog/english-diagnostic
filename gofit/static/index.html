@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoFit · 英语诊断</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#FFF5F0,#FFF0F0,#FFF5FA);
+}
+.wrap{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;padding:20px}
+.card{
+  background:#fff;border-radius:24px;padding:44px 36px;text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.06);width:280px;
+  transition:.2s;text-decoration:none;display:block;
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.1)}
+.card-stu{border:2px solid #FFE0E0}
+.card-stu:hover{border-color:#E54545}
+.card-tea{border:2px solid #E8F0FF}
+.card-tea:hover{border-color:#3B7CFF}
+.emoji{font-size:3.5em;margin-bottom:16px}
+.card h2{font-size:1.3em;margin-bottom:8px}
+.card-stu h2{color:#E54545}
+.card-tea h2{color:#3B7CFF}
+.desc{color:#737373;font-size:.9em;line-height:1.6}
+.tag{
+  display:inline-block;padding:6px 16px;border-radius:12px;
+  font-size:.75em;font-weight:600;margin-top:16px;
+}
+.tag-stu{background:#FFF0F0;color:#E54545}
+.tag-tea{background:#EEF5FF;color:#3B7CFF}
+.footer{
+  position:fixed;bottom:20px;width:100%;text-align:center;
+  font-size:.75em;color:#aaa;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="card card-stu" href="/s">
+    <div class="emoji">🪞</div>
+    <h2>学生入口</h2>
+    <p class="desc">英语学习诊断<br>获取专属六维画像<br>+ 行动小指南</p>
+    <div class="tag tag-stu">约 15 分钟</div>
+  </a>
+  <a class="card card-tea" href="/t">
+    <div class="emoji">📊</div>
+    <h2>教师入口</h2>
+    <p class="desc">班级画像总览<br>六维热力图<br>+ 教学决策建议</p>
+    <div class="tag tag-tea">实时数据</div>
+  </a>
+</div>
+<div class="footer">GoFit · 英语学习诊断工具</div>
+</body>
+</html>

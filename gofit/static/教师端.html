@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoFit · 教师后台</title>
+<style>
+:root{
+  --r:#E54545;--r2:#C62828;--r-light:#FFF0F0;--r-bg:#FFFBFA;
+  --o:#FF8C42;--blue:#3B7CFF;--purple:#7C3AED;
+  --g50:#fafafa;--g100:#f5f5f5;--g200:#e5e5e5;--g300:#d4d4d4;
+  --g400:#a3a3a3;--g500:#737373;--g600:#525252;--g700:#404040;--g800:#262626;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--g800);background:var(--r-bg);line-height:1.6;min-height:100vh;
+}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 40px}
+
+.topbar{
+  background:linear-gradient(135deg,var(--r),var(--r2));
+  color:#fff;padding:24px 28px;text-align:center;
+  border-radius:0 0 20px 20px;margin-bottom:24px;
+}
+.topbar h1{font-size:1.3em;letter-spacing:1px}
+.topbar .sub{font-size:.78em;opacity:.8;margin-top:2px}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:700px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff;border-radius:14px;border:1px solid #FFE0E0;padding:20px;text-align:center}
+.stat .n{font-size:2em;font-weight:800;color:var(--r)}
+.stat .l{font-size:.8em;color:var(--g500);margin-top:2px}
+
+.card{background:#fff;border-radius:16px;border:1px solid #FFE0E0;padding:24px 28px;margin-bottom:18px}
+.card h2{font-size:1.05em;color:var(--g800);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+.type-bar{margin:6px 0;display:flex;align-items:center;gap:10px}
+.type-bar .tname{width:100px;font-size:.82em;text-align:right;flex-shrink:0;font-weight:500}
+.type-bar .ttrack{flex:1;height:22px;background:var(--g100);border-radius:11px;overflow:hidden}
+.type-bar .tfill{height:100%;border-radius:11px;transition:width .5s}
+.type-bar .tcnt{width:40px;font-size:.82em;text-align:center;flex-shrink:0;font-weight:600}
+
+.filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.filter-chip{padding:6px 16px;border-radius:12px;font-size:.82em;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:#fff;font-family:inherit;transition:all .15s}
+.filter-chip:hover{border-color:var(--r)}
+.filter-chip.active{background:var(--r);color:#fff;border-color:var(--r)}
+
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.84em;min-width:700px}
+thead th{background:var(--r-light);color:var(--r2);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid #FFD0D0;white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--g100)}
+tbody tr:hover{background:var(--r-bg)}
+.clickable{cursor:pointer;color:var(--r);font-weight:500}
+.clickable:hover{text-decoration:underline}
+
+.dtags{display:flex;gap:3px;flex-wrap:wrap}
+.dtag{font-size:.7em;padding:2px 6px;border-radius:5px;white-space:nowrap}
+.dt-lo{background:#FEF2F2;color:var(--r)}
+.dt-hi{background:#F0FDF4;color:#16A34A}
+
+.btn{display:inline-block;padding:9px 20px;border-radius:10px;font-size:.85em;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:inherit}
+.btn-pri{background:var(--r);color:#fff}
+.btn-pri:hover{background:var(--r2)}
+.btn-sec{background:var(--g100);color:var(--g700)}
+.btn-sec:hover{background:var(--g200)}
+.btn-red{background:#fff;color:var(--r);border:1px solid #FFD0D0}
+.btn-red:hover{background:var(--r-light)}
+.btn-sm{padding:6px 14px;font-size:.78em;border-radius:8px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:18px;padding:28px;max-width:700px;width:100%;animation:slideUp .3s}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+.rbar{margin:8px 0}
+.rbar-row{display:flex;align-items:center;gap:10px;margin:5px 0}
+.rbar-label{width:100px;font-size:.82em;text-align:right;flex-shrink:0;color:var(--g600)}
+.rbar-track{flex:1;height:16px;background:var(--g100);border-radius:8px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:8px;transition:width .6s}
+.rbar-num{width:40px;font-size:.82em;font-weight:700;text-align:center;flex-shrink:0}
+
+.asym-badge{display:inline-block;padding:4px 12px;border-radius:10px;font-size:.8em;font-weight:600;margin-left:6px}
+.asym-badge.warn{background:#FEF2F2;color:var(--r)}
+.asym-badge.ok{background:#F0FDF4;color:#16A34A}
+
+footer{text-align:center;padding:24px;color:var(--g400);font-size:.78em}
+footer .gt{color:var(--r);font-weight:600}
+
+.type-icon{font-size:2em;margin-right:8px}
+
+.hm-table{border-collapse:collapse;font-size:.78em}
+.hm-table th{font-size:.75em;color:var(--g600);padding:4px 6px;text-align:center;white-space:nowrap;cursor:pointer}
+.hm-table th:hover{color:var(--r)}
+.hm-table td{padding:1px 3px;text-align:center}
+.hm-cell{display:inline-block;width:38px;height:30px;border-radius:6px;line-height:30px;font-weight:700;font-size:.82em;cursor:default;position:relative}
+.hm-cell:hover{transform:scale(1.2);z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hm-cell::after{content:attr(data-tip);position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:2px 8px;border-radius:4px;font-size:.75em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}
+.hm-cell:hover::after{opacity:1}
+.hm-avg{font-weight:700;font-size:.85em;padding:6px 4px;border-top:2px solid var(--g300)}
+.hm-name{font-size:.8em;color:var(--g700);white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;text-align:right}
+.hm-legend{display:flex;gap:12px;align-items:center;font-size:.75em;color:var(--g500);margin-top:10px;flex-wrap:wrap}
+.hm-leg{display:flex;align-items:center;gap:4px}
+.hm-leg-sq{width:14px;height:14px;border-radius:3px}
+
+.adv-item{margin:8px 0;padding:12px 16px;border-radius:12px;border-left:4px solid var(--r)}
+.adv-item h4{font-size:.9em;color:var(--r);margin-bottom:4px}
+.adv-action{background:var(--r-light);border-radius:8px;padding:10px 14px;margin-top:6px;font-size:.84em}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📊 班级英语画像总览</h1>
+  <div class="sub">GoFit · 教师后台 &nbsp;|&nbsp; 学生端数据自动同步 &nbsp; <span onclick="loadAll()" style="cursor:pointer;text-decoration:underline">🔄 刷新</span></div>
+</div>
+
+<div class="wrap">
+
+<div class="stat-grid" id="statsRow"></div>
+
+<div class="card">
+  <h2>🏷️ 等级分布</h2>
+  <div id="typeDist"></div>
+</div>
+
+<div class="card" id="heatmapCard">
+  <h2>🔥 班级热力图 <span style="font-weight:400;font-size:.78em;color:var(--g500)">半秒看短板</span></h2>
+  <div style="overflow-x:auto" id="heatmapWrap"><div style="text-align:center;padding:20px;color:var(--g400)">加载中...</div></div>
+</div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <h2 style="margin:0">👨‍🎓 学员记录</h2>
+    <div class="btn-row">
+      <button class="btn btn-pri btn-sm" onclick="exportCSV()">📥 导出 CSV</button>
+      <button class="btn btn-red btn-sm" onclick="clearData()">🗑 清空</button>
+    </div>
+  </div>
+  <div class="filter-row" id="filterRow" style="margin-top:12px"></div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>姓名</th><th>学段</th><th>最近测试</th><th>等级</th><th>输入/输出</th><th>最弱 ↔ 最强</th><th>操作</th></tr></thead><tbody id="tblBody"></tbody></table>
+  </div>
+  <div id="emptyHint" style="text-align:center;padding:36px;color:var(--g400);display:none">还没有诊断数据<br><span style="font-size:.8em">打开学生端完成诊断后，数据会自动出现在这里</span></div>
+</div>
+
+<div class="card" id="adviceCard">
+  <h2>💡 教学决策建议</h2>
+  <div id="adviceContent" style="font-size:.88em;line-height:1.8;color:var(--g700)"></div>
+</div>
+
+</div>
+
+<!-- Detail Modal -->
+<div class="modal" id="detailModal">
+  <div class="modal-box" id="detailContent"></div>
+</div>
+
+<!-- Compare Modal -->
+<div class="modal" id="compareModal">
+  <div class="modal-box" id="compareContent" style="max-width:800px"></div>
+</div>
+
+<footer><span class="gt">GoFit</span> · 教师后台 · 学生数据实时同步</footer>
+
+<script>
+const dimNames={grammar:'语法精准度',vocabulary:'词汇广度',intuition:'语感知觉',willingness:'表达意愿',adaptability:'学习适应性',metaCognition:'元认知准确度'};
+const dimShort={grammar:'语法',vocabulary:'词汇',intuition:'语感',willingness:'表达',adaptability:'适应',metaCognition:'元认知'};
+const dimIcons={grammar:'🏗️',vocabulary:'📚',intuition:'💡',willingness:'🔥',adaptability:'🧭',metaCognition:'🎯'};
+const dimColors={grammar:'#B45309',vocabulary:'#3B7CFF',intuition:'#7C3AED',willingness:'#DB2777',adaptability:'#0D9488',metaCognition:'#6366F1'};
+const dimKeys=['vocabulary','grammar','intuition','willingness','adaptability','metaCognition'];
+
+let allSummaries=[],detailCache={},currentFilter='all';
+
+// ==================== API ====================
+async function loadAll(){
+  try{
+    const r=await fetch('/api/students');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    allSummaries=await r.json();detailCache={};render();
+  }catch(e){console.error(e);
+    document.getElementById('emptyHint').style.display='block';
+    document.getElementById('emptyHint').innerHTML='⚠️ 无法连接服务器，请确保 gofit.exe 已启动';
+  }
+}
+
+async function getDetail(id){
+  if(detailCache[id])return detailCache[id];
+  const r=await fetch('/api/student?id='+id);
+  if(!r.ok)throw new Error('学生不存在');
+  const d=await r.json();detailCache[id]=d;return d;
+}
+
+function computeType(scores){
+  const{g:g,v:v,i,w,a,m}=scores;
+  const inAvg=(v+g+m)/3,outAvg=(i+w)/2;
+  if(inAvg>=70&&outAvg>=65)return{name:'均衡型',icon:'⭐'};
+  if(inAvg>=70&&outAvg<55)return{name:'输入型',icon:'📖'};
+  if(outAvg>=65&&inAvg<55)return{name:'输出型',icon:'🗣️'};
+  if(i>=65&&g<50)return{name:'语感型',icon:'💡'};
+  if(g>=65&&i<50)return{name:'规则型',icon:'📐'};
+  return{name:'发展中',icon:'🌱'};
+}
+
+// ==================== RENDER ====================
+async function render(){
+  const filtered=currentFilter==='all'?allSummaries:allSummaries.filter(s=>s.grade===currentFilter);
+
+  // Stats
+  const names=[...new Set(allSummaries.map(s=>s.name))].length;
+  const grades=[...new Set(allSummaries.map(s=>s.grade).filter(Boolean))];
+  const avgAll=allSummaries.length?Math.round(allSummaries.reduce((a,s)=>a+s.avgScore,0)/allSummaries.length):0;
+  document.getElementById('statsRow').innerHTML=
+    '<div class="stat"><div class="n">'+allSummaries.length+'</div><div class="l">总诊断次数</div></div>'+
+    '<div class="stat"><div class="n">'+names+'</div><div class="l">独立学员</div></div>'+
+    '<div class="stat"><div class="n">'+grades.length+'</div><div class="l">覆盖学段</div></div>'+
+    '<div class="stat"><div class="n">'+avgAll+'</div><div class="l">班级均分</div></div>';
+
+  // Filters
+  let f='<button class="filter-chip'+(currentFilter==='all'?' active':'')+'" onclick="setFilter(\'all\')">全部</button>';
+  grades.forEach(g=>f+='<button class="filter-chip'+(currentFilter===g?' active':'')+'" onclick="setFilter(\''+g+'\')">'+g+'</button>');
+  document.getElementById('filterRow').innerHTML=f;
+
+  // Level dist
+  const ld={};filtered.forEach(s=>{ld[s.level]=(ld[s.level]||0)+1;});
+  const sorted=Object.entries(ld).sort((a,b)=>b[1]-a[1]);const maxCnt=sorted.length?sorted[0][1]:1;
+  const tColors=['#E54545','#FF8C42','#FFB703','#7C3AED','#3B7CFF','#DB2777','#0D9488','#16A34A'];
+  let t='';sorted.forEach(([l,c],i)=>t+='<div class="type-bar"><div class="tname">'+l+'</div><div class="ttrack"><div class="tfill" style="width:'+(c/maxCnt*100)+'%;background:'+tColors[i%tColors.length]+'"></div></div><div class="tcnt">'+c+'人</div></div>');
+  document.getElementById('typeDist').innerHTML=t||'<span style="color:var(--g400)">暂无数据</span>';
+
+  // Table (basis list first)
+  let tb='';filtered.sort((a,b)=>b.id-a.id).forEach(s=>{
+    const hN=allSummaries.filter(x=>x.name===s.name).length;
+    const badge=hN>1?' <span style="background:var(--r-light);color:var(--r);border-radius:8px;padding:1px 6px;font-size:.7em;cursor:pointer" onclick="showCompare('+s.id+')" title="查看历史">'+hN+'次</span>':'';
+    tb+='<tr><td class="clickable" onclick="viewDetail('+s.id+')">'+s.name+badge+'</td><td>'+(s.grade||'-')+'</td><td>'+s.lastTest+'</td><td id="t_'+s.id+'">'+s.level+'</td><td id="io_'+s.id+'">-</td><td id="d_'+s.id+'">-</td><td><button class="btn btn-sec btn-sm" onclick="viewDetail('+s.id+')">查看</button> <button class="btn btn-red btn-sm" onclick="delStudent('+s.id+')">删</button></td></tr>';
+  });
+  document.getElementById('tblBody').innerHTML=tb;
+  document.getElementById('emptyHint').style.display=filtered.length?'none':'block';
+
+  // Async load details
+  loadDetails(filtered);
+  loadHeatmap(filtered);
+  document.getElementById('adviceContent').innerHTML=generateAdvice(filtered);
+}
+
+async function loadDetails(list){
+  for(const s of list){
+    try{
+      const d=await getDetail(s.id);if(!d.diagnoses||!d.diagnoses.length)continue;
+      const diag=d.diagnoses[0],sc=diag.scores,type=computeType(sc);
+      const gap=diag.inputScore-diage.outputScore;
+      const tag=Math.abs(gap)>=15?'<span class="asym-badge warn">⚠'+gap+'</span>':'<span class="asym-badge ok">'+gap+'</span>';
+      const te=document.getElementById('t_'+s.id),ie=document.getElementById('io_'+s.id),de=document.getElementById('d_'+s.id);
+      if(te)te.textContent=type.icon+' '+type.name;
+      if(ie)ie.innerHTML=diag.inputScore+'/'+diage.outputScore+' '+tag;
+      if(de){
+        const ent=Object.entries(sc).sort((a,b)=>a[1]-b[1]);
+        if(ent.length>=2){const wk=ent[0],st=ent[ent.length-1];de.innerHTML='<div class="dtags"><span class="dtag dt-lo">'+(dimShort[wk[0]]||wk[0])+' '+wk[1]+'</span> → <span class="dtag dt-hi">'+(dimShort[st[0]]||st[0])+' '+st[1]+'</span></div>';}
+      }
+    }catch(e){}
+  }
+}
+
+async function loadHeatmap(list){
+  const hmColor=v=>v>=80?'#16A34A':v>=65?'#7BC89C':v>=55?'#FFB703':v>=40?'#FF8C42':'#E54545';
+  const sm={};for(const s of list){try{const d=await getDetail(s.id);if(d.diagnoses&&d.diagnoses.length)sm[s.id]=d.diagnoses[0].scores;}catch(e){}}
+  if(!Object.keys(sm).length){document.getElementById('heatmapWrap').innerHTML='<div style="text-align:center;padding:20px;color:var(--g400)">暂无详细数据</div>';return;}
+  let h='<table class="hm-table"><thead><tr><th>学员</th>';
+  dimKeys.forEach(k=>h+='<th onclick="sortHeatmap(\''+k+'\')">'+dimShort[k]+'</th>');
+  h+='</tr></thead><tbody>';
+  list.forEach(s=>{const sc=sm[s.id];if(!sc)return;
+    h+='<tr><td class="hm-name" title="'+s.name+'·'+(s.grade||'')+'">'+s.name+'</td>';
+    dimKeys.forEach(k=>{const v=sc[k]||0;h+='<td><span class="hm-cell" style="background:'+hmColor(v)+';color:'+(v<55?'#fff':'#333')+'" data-tip="'+dimShort[k]+':'+v+'" onclick="viewDetail('+s.id+')">'+v+'</span></td>';});
+    h+='</tr>';
+  });
+  h+='<tr><td class="hm-avg" style="text-align:right;color:var(--g600)">班级均值</td>';
+  dimKeys.forEach(k=>{let sum=0,cnt=0;list.forEach(s=>{const sc=sm[s.id];if(sc&&sc[k]!==undefined){sum+=sc[k];cnt++;}});const avg=cnt?Math.round(sum/cnt):0;h+='<td class="hm-avg" style="color:'+(avg<50?'var(--r)':avg<60?'var(--o)':'#16A34A')+'">'+avg+'</td>';});
+  h+='</tr></tbody></table><div class="hm-legend"><span class="hm-leg"><span class="hm-leg-sq" style="background:#E54545"></span>弱(0-40)</span><span class="hm-leg"><span class="hm-leg-sq" style="background:#FF8C42"></span>偏弱(40-55)</span><span class="hm-leg"><span class="hm-leg-sq" style="background:#FFB703"></span>中等(55-65)</span><span class="hm-leg"><span class="hm-leg-sq" style="background:#7BC89C"></span>良好(65-80)</span><span class="hm-leg"><span class="hm-leg-sq" style="background:#16A34A"></span>优秀(80+)</span></div>';
+  document.getElementById('heatmapWrap').innerHTML=h;
+}
+
+function setFilter(f){currentFilter=f;detailCache={};render();}
+
+// ==================== DETAIL ====================
+async function viewDetail(id){
+  try{
+    const detail=await getDetail(id);if(!detail.diagnoses||!detail.diagnoses.length){alert('暂无诊断数据');return;}
+    const d=detail.diagnoses[0],sc=d.scores,type=computeType(sc),gap=d.inputScore-diage.outputScore;
+    let h='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><span style="font-size:2.2em">'+type.icon+'</span><div><h3 style="margin:0">'+detail.name+' · '+(detail.grade||'未知')+'</h3><p style="color:var(--g500);font-size:.82em;margin:0">'+(d.createdAt||'')+' · '+type.name+' · 输入'+d.inputScore+' / 输出'+diag.outputScore+' · 落差'+gap+'</p></div></div>';
+    h+='<h4 style="margin-bottom:8px;color:var(--g700)">六维能力</h4><div class="rbar">';
+    Object.entries(sc).forEach(([k,v])=>{h+='<div class="rbar-row"><div class="rbar-label">'+(dimIcons[k]||'')+' '+(dimNames[k]||k)+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+v+'%;background:'+(dimColors[k]||'#999')+'"></div></div><div class="rbar-num" style="color:'+(dimColors[k]||'#999')+'">'+v+'</div></div>';});
+    h+='</div>';
+    if(d.matrixData&&d.matrixData.length){
+      const tc=d.matrixData.length,rc=d.matrixData.filter(m=>m.cognitionType==='rule').length,ic=d.matrixData.filter(m=>m.cognitionType==='intuition').length,sc2=d.matrixData.filter(m=>m.cognitionType==='strategy').length,gc=d.matrixData.filter(m=>m.cognitionType==='guess').length;
+      h+='<h4 style="margin-top:16px;margin-bottom:8px;color:var(--g700)">知识内化模式</h4><div style="font-size:.85em">规则驱动 '+rc+'次('+(tc?(rc/tc*100).toFixed(0):0)+'%) · 语感驱动 '+ic+'次('+(tc?(ic/tc*100).toFixed(0):0)+'%) · 策略补偿 '+sc2+'次 · 猜测 '+gc+'次</div>';
+    }
+    if(d.prefAdvice) h+='<h4 style="margin-top:16px;margin-bottom:8px;color:var(--g700)">学习偏好</h4><div style="font-size:.85em">'+d.prefAdvice+'</div>';
+    if(d.gapAdvice) h+='<h4 style="margin-top:16px;margin-bottom:8px;color:var(--g700)">输入输出分析</h4><div style="font-size:.85em">'+d.gapAdvice+'</div>';
+    h+='<div style="margin-top:18px"><button class="btn btn-pri btn-sm" onclick="document.getElementById(\'detailModal\').classList.remove(\'show\')">关闭</button> <button class="btn btn-red btn-sm" onclick="delDiag('+d.id+')">删除本条</button></div>';
+    document.getElementById('detailContent').innerHTML=h;document.getElementById('detailModal').classList.add('show');
+  }catch(e){alert('加载失败: '+e.message);}
+}
+document.getElementById('detailModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+document.getElementById('compareModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+
+async function delDiag(diagId){if(!confirm('确定删除这条诊断记录吗？'))return;await fetch('/api/diagnosis?id='+diagId,{method:'DELETE'});loadAll();}
+async function delStudent(id){if(!confirm('确定删除该学生及其所有记录吗？'))return;await fetch('/api/student?id='+id,{method:'DELETE'});detailCache={};loadAll();}
+async function clearData(){if(!confirm('确定清空全部数据吗？此操作不可恢复。'))return;for(const s of allSummaries)await fetch('/api/student?id='+s.id,{method:'DELETE'});allSummaries=[];detailCache={};render();}
+
+// ==================== COMPARE ====================
+async function showCompare(id){
+  try{
+    const detail=await getDetail(id);if(!detail.diagnoses||detail.diagnoses.length<2){alert('只有一次记录，无法对比');return;}
+    const diags=detail.diagnoses;diags.sort((a,b)=>a.id-b.id);const a=diags[diags.length-2],b=diags[diags.length-1];
+    let h='<h3 style="margin-bottom:4px">📈 '+detail.name+' · '+(detail.grade||'')+'</h3><p style="color:var(--g500);font-size:.85em;margin-bottom:16px">'+(a.createdAt||'上次')+' → '+(b.createdAt||'本次')+'</p>';
+    h+='<table style="width:100%;font-size:.85em;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:6px">维度</th><th style="text-align:center;padding:6px">上次</th><th style="text-align:center;padding:6px">本次</th><th style="text-align:center;padding:6px">变化</th></tr></thead><tbody>';
+    Object.keys(dimNames).forEach(k=>{const va=a.scores[k]||0,vb=b.scores[k]||0,delta=vb-va,arrow=delta>=8?'<span style="color:#16A34A;font-weight:700">↑'+delta+'</span>':delta<=-8?'<span style="color:#E54545;font-weight:700">↓'+Math.abs(delta)+'</span>':'<span style="color:#999">→'+delta+'</span>';h+='<tr style="border-bottom:1px solid var(--g100)"><td style="padding:6px">'+(dimIcons[k]||'')+' '+(dimNames[k]||k)+'</td><td style="text-align:center;padding:6px;color:var(--g500)">'+va+'</td><td style="text-align:center;padding:6px;font-weight:700;color:'+(dimColors[k]||'#999')+'">'+vb+'</td><td style="text-align:center;padding:6px">'+arrow+'</td></tr>';});
+    h+='</tbody></table>';
+    const keys=Object.keys(dimNames),improved=keys.filter(k=>(b.scores[k]||0)-(a.scores[k]||0)>=8).length,declined=keys.filter(k=>(b.scores[k]||0)-(a.scores[k]||0)<=-8).length;
+    h+='<div style="margin-top:14px;padding:12px;background:#FFF8F5;border-radius:10px;font-size:.84em">';
+    if(improved>0&&declined===0)h+='✅ 全部维度稳中有升，'+improved+'个维度明显进步！';else if(improved>0)h+='✅ '+improved+'↑，⚠'+declined+'↓。';else if(declined>0)h+='⚠ '+declined+'个维度回落，建议排查原因。';else h+='各维度变化不大，尝试新学习方式。';
+    h+='</div><div style="margin-top:14px"><button class="btn btn-pri btn-sm" onclick="document.getElementById(\'compareModal\').classList.remove(\'show\')">关闭</button></div>';
+    document.getElementById('compareContent').innerHTML=h;document.getElementById('compareModal').classList.add('show');
+  }catch(e){alert('加载失败: '+e.message);}
+}
+
+// ==================== HEATMAP SORT ====================
+let hsDim=null,hsAsc=true;
+function sortHeatmap(dim){hsDim=dim;hsAsc=!hsAsc;const tbody=document.querySelector('#heatmapWrap tbody');if(!tbody)return;const rows=[...tbody.querySelectorAll('tr:not(:last-child)')],avgRow=tbody.querySelector('tr:last-child');const idx=dimKeys.indexOf(dim)+1;rows.sort((a,b)=>{const va=parseInt(a.cells[idx]?.textContent)||0,vb=parseInt(b.cells[idx]?.textContent)||0;return hsAsc?va-vb:vb-va;});rows.forEach(r=>tbody.appendChild(r));if(avgRow)tbody.appendChild(avgRow);}
+
+// ==================== ADVICE ====================
+function generateAdvice(list){
+  if(!list.length)return'<span style="color:var(--g400)">暂无数据。请先让学生完成诊断并保存。</span>';
+  const ld={};list.forEach(s=>{ld[s.level]=(ld[s.level]||0)+1;});const sorted=Object.entries(ld).sort((a,b)=>b[1]-a[1]);
+  let h='<div class="adv-item"><h4>📊 班级概况</h4><p>共 <strong>'+list.length+'</strong> 条诊断，覆盖 <strong>'+[...new Set(list.map(s=>s.grade).filter(Boolean))].length+'</strong> 个学段。</p>';
+  if(sorted.length)h+='<p style="margin-top:4px">最大群体: <strong>'+sorted[0][0]+'</strong>（'+sorted[0][1]+'人），占比 '+Math.round(sorted[0][1]/list.length*100)+'%</p></div>';
+  h+='<div class="adv-item"><h4>💡 操作提示</h4><p>• 点击姓名查看六维详情<br>• 多次诊断可对比历史记录<br>• 热力图可点表头排序<br>• 每30秒自动刷新</p></div>';
+  return h;
+}
+
+function exportCSV(){
+  if(!allSummaries.length){alert('暂无数据');return;}
+  let csv='﻿姓名,学段,最近测试,等级,均分\n';
+  allSummaries.forEach(s=>csv+=[s.name,s.grade||'',s.lastTest||'',s.level||'',s.avgScore||0].join(',')+'\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='GoFit_班级数据_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+loadAll();setInterval(loadAll,30000);
+</script>
+</body>
+</html>

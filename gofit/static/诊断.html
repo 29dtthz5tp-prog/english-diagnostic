@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>英语诊断工具 · 六维精析 | 双层题+自我评估+偏好配对</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f5fc;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem 1rem;
+            color: #1a2f44;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* 头部 */
+        .hero {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 12px 25px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e3edf5;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            background: linear-gradient(135deg, #1E4A76, #2B6A9F);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sub {
+            color: #4a627a;
+            margin-top: 6px;
+            font-size: 0.9rem;
+        }
+
+        .name-area {
+            margin-top: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            background: #f8fafd;
+            padding: 0.6rem 1rem;
+            border-radius: 50px;
+        }
+
+        #studentName {
+            border: 1px solid #cbe0ed;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            font-family: inherit;
+            width: 220px;
+        }
+
+        /* 卡片通用 */
+        .card {
+            background: white;
+            border-radius: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #fefcf7;
+            padding: 1rem 1.8rem;
+            border-bottom: 1px solid #eef2f0;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .card-body {
+            padding: 1.8rem;
+        }
+
+        .question-block {
+            margin-bottom: 2rem;
+            border-left: 4px solid #cbdde9;
+            padding-left: 1.2rem;
+        }
+
+        .q-label {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            gap: 12px;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #eef2ff;
+            color: #1f5a9e;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+        }
+
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin: 0.8rem 0 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 0.3rem 0;
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2c6eaf;
+        }
+
+        .cognition-area {
+            background: #fafdff;
+            margin-top: 0.8rem;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            border: 1px dashed #cde0ef;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.7rem 1.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #2c6eaf;
+            color: white;
+            box-shadow: 0 4px 8px rgba(44, 110, 175, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #1f5688;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #eef2f9;
+            border: 1px solid #cde0ef;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0 1.5rem;
+        }
+
+        /* 结果区域 */
+        .result-container {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .result-header {
+            background: #f1f7fe;
+            padding: 1rem 2rem;
+            border-radius: 2rem 2rem 0 0;
+        }
+
+        .result-inner {
+            padding: 2rem;
+        }
+
+        .dim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0;
+        }
+
+        .dim-card {
+            background: #f9fcfd;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            border: 1px solid #e2ecf5;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 20px;
+            height: 8px;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            background: #2c6eaf;
+            width: 0%;
+            height: 100%;
+            border-radius: 20px;
+        }
+
+        .io-box {
+            background: #eef3fc;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .matrix-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            background: #edf2f7;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+        }
+
+        canvas {
+            max-width: 280px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        @media (max-width: 700px) {
+            .card-body {
+                padding: 1rem;
+            }
+            .hero {
+                padding: 1rem;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+            <h1>📊 英语诊断工具 · 全景六维版</h1>
+            <span class="badge">双层认知 | 四象限矩阵 | 输入输出落差</span>
+        </div>
+        <div class="sub">基于知识点双层题 + 自我评估 + 学习风格配对，精准定位强项与盲区</div>
+        <div class="name-area">
+            <label>🧑‍🎓 学生姓名</label>
+            <input type="text" id="studentName" placeholder="例：林语晨 / Alex">
+            <label style="margin-left:1rem;">📚 学段</label>
+            <select id="studentGrade" style="border:1px solid #cbe0ed;border-radius:40px;padding:0.5rem 1rem;font-family:inherit;">
+                <option value="">选择学段</option>
+                <option value="初一">初一</option>
+                <option value="初二">初二</option>
+                <option value="初三">初三</option>
+                <option value="初升高">初升高</option>
+                <option value="高一">高一</option>
+                <option value="高二">高二</option>
+                <option value="高三">高三</option>
+            </select>
+            <span style="font-size:0.7rem;">✨ 报告将同步到教师端</span>
+        </div>
+    </div>
+
+    <!-- ================= 题型二：双层知识点题（2道示范） ================= -->
+    <div class="card">
+        <div class="card-header">📖 题型二 · 双层知识点理解（识别层+认知层）</div>
+        <div class="card-body" id="doubleLayerArea"></div>
+    </div>
+
+    <!-- ================= 题型三：自我评估 ================= -->
+    <div class="card">
+        <div class="card-header">🧭 题型三 · 自我评估（元认知 & 表达意愿）</div>
+        <div class="card-body" id="selfEvalArea"></div>
+    </div>
+
+    <!-- ================= 题型四：偏好配对 ================= -->
+    <div class="card">
+        <div class="card-header">🎨 题型四 · 学习风格偏好配对</div>
+        <div class="card-body" id="prefArea"></div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-primary" id="diagnoseBtn">🔍 生成完整诊断报告</button>
+        <button class="btn btn-secondary" id="resetBtn">⟳ 重置所有选项</button>
+    </div>
+
+    <div class="result-container" id="resultArea">
+        <div class="result-header">
+            <h3>📈 多维能力报告 & 教学策略</h3>
+        </div>
+        <div class="result-inner" id="resultContent"></div>
+        <div style="text-align:center;padding:0 2rem 1.5rem;" id="saveArea">
+            <button class="btn btn-primary" id="saveBtn" style="background:#16A34A;box-shadow:0 4px 8px rgba(22,163,74,0.2);" onclick="submitToServer()">📤 保存结果到教师端</button>
+            <span id="saveStatus" style="margin-left:12px;font-size:0.85rem;"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ----------------------------- 双层题数据 ---------------------------------
+    // 每道题包含：题干、选项、正确选项、每个选项对维度的影响（语法/词汇/语感）、认知层追问选项及影响
+    const DOUBLE_ITEMS = [
+        {
+            id: 1,
+            skill: "语法精准度",
+            text: "She ___ to school every day.",
+            options: [
+                { code: "A", text: "go", impacts: { grammar: -1, vocabulary: 0, intuition: -0.5 } },
+                { code: "B", text: "goes", impacts: { grammar: 2, vocabulary: 0, intuition: 1 } },
+                { code: "C", text: "going", impacts: { grammar: -1, vocabulary: 0, intuition: -0.5 } },
+                { code: "D", text: "went", impacts: { grammar: -2, vocabulary: 0, intuition: -1 } }
+            ],
+            correct: "B",
+            cognitionOptions: [
+                { code: "rule", text: "我记得语法规则（第三人称单数加 -s）", type: "rule", metaImpact: { explicitBonus: 1 } },
+                { code: "intuition", text: "读起来顺口，感觉这个是对的", type: "intuition", metaImpact: { intuitionBonus: 1.5 } },
+                { code: "strategy", text: "排除了其他选项，只剩下这个", type: "strategy", metaImpact: { strategyBonus: 0.5 } },
+                { code: "guess", text: "不太确定，猜的", type: "guess", metaImpact: { lowConfidence: -0.5 } }
+            ]
+        },
+        {
+            id: 2,
+            skill: "词汇广度",
+            text: "The movie was absolutely ______. I loved it!",
+            options: [
+                { code: "A", text: "boring", impacts: { grammar: 0, vocabulary: -1, intuition: -0.5 } },
+                { code: "B", text: "fantastic", impacts: { grammar: 0, vocabulary: 2, intuition: 1.2 } },
+                { code: "C", text: "terrible", impacts: { grammar: 0, vocabulary: -1, intuition: -1 } },
+                { code: "D", text: "ordinary", impacts: { grammar: 0, vocabulary: 0, intuition: -0.2 } }
+            ],
+            correct: "B",
+            cognitionOptions: [
+                { code: "rule", text: "根据词义和语境分析出来的", type: "rule", metaImpact: { explicitBonus: 1 } },
+                { code: "intuition", text: "读起来很自然，感觉就是fantastic", type: "intuition", metaImpact: { intuitionBonus: 1.5 } },
+                { code: "strategy", text: "排除否定含义后选出", type: "strategy", metaImpact: { strategyBonus: 0.5 } },
+                { code: "guess", text: "不太确定，随便选的", type: "guess", metaImpact: { lowConfidence: -0.5 } }
+            ]
+        }
+    ];
+
+    // 自我评估题目
+    const SELF_EVAL = [
+        { id: "se1", text: "你觉得自己的英语阅读能力怎么样？", options: ["非常弱", "偏弱", "一般", "比较好", "优秀"], dimension: "metaCognition", mapping: [20,40,60,80,100] },
+        { id: "se2", text: "如果用英语写一段话介绍自己（50词左右），你愿意试试吗？", options: ["非常愿意", "有点犹豫", "不太愿意", "完全拒绝"], dimension: "willingness", scores: [2, -0.5, -1.5, -2.5] },
+        { id: "se3", text: "你觉得学英语最难的是什么？（归因）", options: [
+            "我单词背得少，需要积累 (具体可控)",
+            "语法规则太复杂，记不住 (部分可控)",
+            "英语太难了，我没有语言天赋 (不可控)",
+            "缺少练习环境，多练就好 (具体可控)"
+        ], dimension: "adaptability", scores: [2, 0.5, -1.5, 2] }
+    ];
+
+    // 偏好配对
+    const PREF_ITEMS = [
+        { id: "pref1", text: "哪种方式帮你背单词最有效？", options: ["反复抄写", "大声朗读", "放到句子里用", "看图或联想"], styleMap: ["动觉型", "听觉型", "语境型", "图像型"] },
+        { id: "pref2", text: "英语课上你最喜欢哪种活动？", options: ["角色扮演/对话", "听老师讲解", "自己读故事", "做游戏/比赛"], styleMap: ["社交型", "结构型", "独立型", "竞争型"] }
+    ];
+
+    // 维度初始值 (满分基数: 语法/词汇/语感/意愿/适应性/元认知)
+    let dimValues = {
+        grammar: 0,     // 语法精准度
+        vocabulary: 0,  // 词汇广度
+        intuition: 0,   // 语感知觉
+        willingness: 0, // 表达意愿
+        adaptability: 0,// 学习适应性
+        metaCognition: 0// 元认知准确度 (结合自评对比)
+    };
+    let dimCounts = { grammar:0, vocabulary:0, intuition:0, willingness:0, adaptability:0, metaCognition:0 };
+    let doubleMetaRecords = []; // 存储双层诊断 {qid, isCorrect, cognitionType}
+    let actualReadingScore = 0; // 实际阅读能力由双层题中的语法/词汇/语感间接推算，这里简化用一个阅读评测分（词汇+语法+语感组合）
+    let selfRatingReading = 50; // 用户自评阅读分
+    let lastDiagnosisData = null; // 缓存最近一次诊断数据，用于提交到服务器
+
+    // 渲染双层题
+    function renderDoubleLayer() {
+        const container = document.getElementById('doubleLayerArea');
+        let html = '';
+        DOUBLE_ITEMS.forEach((q, idx) => {
+            html += `<div class="question-block" data-qid="${q.id}">
+                        <div class="q-label"><span class="badge">${q.skill}</span> ${q.text}</div>
+                        <div class="options-group" id="dl_opt_${q.id}">`;
+            q.options.forEach(opt => {
+                html += `<div class="option-row" onclick="document.getElementById('dl_${q.id}_${opt.code}').click();">
+                            <input type="radio" name="dl_${q.id}" id="dl_${q.id}_${opt.code}" value="${opt.code}">
+                            <label>${opt.code}. ${opt.text}</label>
+                         </div>`;
+            });
+            html += `</div><div class="cognition-area">
+                        <div style="font-weight:500; font-size:0.8rem;">🔍 认知追问: 你刚才选答案主要是靠什么？</div>
+                        <div class="options-group" id="dl_cog_${q.id}">`;
+            q.cognitionOptions.forEach((cog, ci) => {
+                html += `<div class="option-row" onclick="document.getElementById('dl_cog_${q.id}_${ci}').click();">
+                            <input type="radio" name="dl_cog_${q.id}" id="dl_cog_${q.id}_${ci}" value="${cog.code}">
+                            <label>${String.fromCharCode(65+ci)}. ${cog.text}</label>
+                         </div>`;
+            });
+            html += `</div></div></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderSelfEval() {
+        const container = document.getElementById('selfEvalArea');
+        let html = '';
+        SELF_EVAL.forEach((item, idx) => {
+            html += `<div class="question-block"><div class="q-label">📌 ${item.text}</div><div class="options-group" id="se_${idx}">`;
+            item.options.forEach((opt, optIdx) => {
+                html += `<div class="option-row" onclick="document.getElementById('se_${idx}_${optIdx}').click();">
+                            <input type="radio" name="se_${idx}" id="se_${idx}_${optIdx}" value="${optIdx}">
+                            <label>${opt}</label>
+                         </div>`;
+            });
+            html += `</div></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderPref() {
+        const container = document.getElementById('prefArea');
+        let html = '';
+        PREF_ITEMS.forEach((item, idx) => {
+            html += `<div class="question-block"><div class="q-label">🎯 ${item.text}</div><div class="options-group" id="pref_${idx}">`;
+            item.options.forEach((opt, optIdx) => {
+                html += `<div class="option-row" onclick="document.getElementById('pref_${idx}_${optIdx}').click();">
+                            <input type="radio" name="pref_${idx}" id="pref_${idx}_${optIdx}" value="${optIdx}">
+                            <label>${opt}</label>
+                         </div>`;
+            });
+            html += `</div></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // 收集数据并计算六维分数
+    function collectAndCompute() {
+        // 重置
+        dimValues = { grammar:0, vocabulary:0, intuition:0, willingness:0, adaptability:0, metaCognition:0 };
+        dimCounts = { grammar:0, vocabulary:0, intuition:0, willingness:0, adaptability:0, metaCognition:0 };
+        doubleMetaRecords = [];
+        // 处理双层题
+        DOUBLE_ITEMS.forEach(q => {
+            const selectedOpt = document.querySelector(`input[name="dl_${q.id}"]:checked`);
+            const selectedCog = document.querySelector(`input[name="dl_cog_${q.id}"]:checked`);
+            if (!selectedOpt || !selectedCog) return; // 未完成后续检测
+            const optValue = selectedOpt.value;
+            const cogValue = selectedCog.value;
+            const optData = q.options.find(o => o.code === optValue);
+            const cogData = q.cognitionOptions.find(c => c.code === cogValue);
+            if (!optData || !cogData) return;
+            const isCorrect = (optValue === q.correct);
+            // 累加识别层的影响
+            if (optData.impacts.grammar) { dimValues.grammar += optData.impacts.grammar; dimCounts.grammar++; }
+            if (optData.impacts.vocabulary) { dimValues.vocabulary += optData.impacts.vocabulary; dimCounts.vocabulary++; }
+            if (optData.impacts.intuition) { dimValues.intuition += optData.impacts.intuition; dimCounts.intuition++; }
+            // 认知层额外影响（语感/显性）
+            if (cogData.type === 'intuition') { dimValues.intuition += 1.2; dimCounts.intuition++; }
+            if (cogData.type === 'rule') { dimValues.grammar += 1; dimCounts.grammar++; }
+            // 记录四象限数据
+            doubleMetaRecords.push({
+                qid: q.id, isCorrect: isCorrect,
+                cognitionType: cogData.type,
+                skill: q.skill
+            });
+        });
+        // 处理自我评估
+        const seRadios = document.querySelectorAll('[id^="se_"]');
+        SELF_EVAL.forEach((item, idx) => {
+            const selected = document.querySelector(`input[name="se_${idx}"]:checked`);
+            if (!selected) return;
+            const optIdx = parseInt(selected.value);
+            if (item.id === "se1") {
+                // 阅读自评分数
+                selfRatingReading = item.mapping[optIdx];
+                // 元认知分数暂存，最后与实际对比计算
+            } else if (item.id === "se2") {
+                let val = item.scores[optIdx];
+                dimValues.willingness += val; dimCounts.willingness++;
+            } else if (item.id === "se3") {
+                let val = item.scores[optIdx];
+                dimValues.adaptability += val; dimCounts.adaptability++;
+            }
+        });
+        // 计算实际阅读能力指数 (基于语法+词汇+语感组合)
+        const actualReadRaw = (dimValues.grammar / (dimCounts.grammar||1)) * 0.4 + (dimValues.vocabulary / (dimCounts.vocabulary||1)) * 0.4 + (dimValues.intuition / (dimCounts.intuition||1)) * 0.2;
+        let actualReadPercent = Math.min(100, Math.max(0, actualReadRaw * 25 + 50)); // 映射到0-100
+        actualReadPercent = Math.round(actualReadPercent);
+        // 元认知准确度：自评和实际差异越小分越高
+        let metaDiff = Math.abs(selfRatingReading - actualReadPercent);
+        let metaScore = 100 - Math.min(70, metaDiff * 1.5);
+        dimValues.metaCognition += metaScore; dimCounts.metaCognition = 1;
+        
+        // 偏好配对只用于个性化建议，不参与维度分
+        let prefStyles = { vocabMethod: "", favActivity: "" };
+        PREF_ITEMS.forEach((item, idx) => {
+            const selected = document.querySelector(`input[name="pref_${idx}"]:checked`);
+            if (selected) {
+                const optIdx = parseInt(selected.value);
+                if (idx === 0) prefStyles.vocabMethod = item.styleMap[optIdx];
+                else prefStyles.favActivity = item.styleMap[optIdx];
+            }
+        });
+        
+        // 归一化各维度到0-100分
+        let normalized = {};
+        for (let key of ['grammar','vocabulary','intuition','willingness','adaptability','metaCognition']) {
+            let raw = dimValues[key];
+            let count = dimCounts[key] || 1;
+            let avg = raw / count;
+            let base = (key === 'grammar' || key === 'vocabulary') ? 60 : 50;
+            let norm = Math.min(100, Math.max(0, base + avg * 5));
+            normalized[key] = Math.round(norm);
+        }
+        // 确保意愿和适应性不低于20
+        normalized.willingness = Math.max(20, normalized.willingness);
+        normalized.adaptability = Math.max(20, normalized.adaptability);
+        return { normalized, actualReadPercent, prefStyles, doubleMetaRecords };
+    }
+    
+    // 生成报告
+    function generateDiagnosis() {
+        // 检查所有必答题是否完成 (双层题必须全选，自我评估全部，偏好建议非强制但全做更好)
+        let missing = [];
+        DOUBLE_ITEMS.forEach(q => {
+            if (!document.querySelector(`input[name="dl_${q.id}"]:checked`) || !document.querySelector(`input[name="dl_cog_${q.id}"]:checked`)) missing.push(`双层题 ${q.id}`);
+        });
+        SELF_EVAL.forEach((_,idx) => {
+            if (!document.querySelector(`input[name="se_${idx}"]:checked`)) missing.push(`自我评估${idx+1}`);
+        });
+        if (missing.length > 0) {
+            alert(`请完成以下题目: ${missing.join(', ')}`);
+            return false;
+        }
+        const { normalized, actualReadPercent, prefStyles, doubleMetaRecords } = collectAndCompute();
+        const name = document.getElementById('studentName').value.trim() || "同学";
+        
+        // 输入输出落差: 输入维度 = 词汇+语法+阅读策略(此处阅读策略用实际阅读综合分替代) / 输出维度 = 意愿+语感+语法应用
+        let inputScore = (normalized.vocabulary + normalized.grammar + actualReadPercent) / 3;
+        let outputScore = (normalized.willingness + normalized.intuition + normalized.grammar) / 3;
+        inputScore = Math.round(inputScore);
+        outputScore = Math.round(outputScore);
+        const gap = inputScore - outputScore;
+        let gapAdvice = "";
+        if (gap > 18) gapAdvice = "🔹 输入强 / 输出弱：理解能力远大于表达。主攻输出训练：口语日记、写作工作坊、影子跟读。";
+        else if (gap < -12) gapAdvice = "🔸 输出倾向型：表达意愿高但输入积累不足。强化可理解性输入，增加分级阅读。";
+        else gapAdvice = "⚖️ 输入输出相对均衡，继续大量泛读+定期输出巩固。";
+        
+        // 四象限矩阵分析
+        let matrixHtml = `<div style="margin:12px 0"><strong>📌 双层认知四象限诊断</strong><div class="matrix-tags">`;
+        doubleMetaRecords.forEach(rec => {
+            let status = rec.isCorrect ? "✅ 正确" : "❌ 错误";
+            let cogShow = rec.cognitionType === 'rule' ? "靠规则" : (rec.cognitionType === 'intuition' ? "靠语感" : (rec.cognitionType === 'strategy' ? "策略补偿" : "猜测"));
+            let quadrant = "";
+            if (rec.isCorrect && cogShow === '靠规则') quadrant = "显性掌握 → 需内化训练";
+            else if (rec.isCorrect && cogShow === '靠语感') quadrant = "内化掌握 → 挑战复杂情境";
+            else if (!rec.isCorrect && cogShow === '靠规则') quadrant = "规则应用错误 → 定位断点";
+            else if (!rec.isCorrect && cogShow === '靠语感') quadrant = "语感偏差 → 大量正确输入";
+            else quadrant = "知识/策略空白 → 打基础+输入";
+            matrixHtml += `<span class="tag">题${rec.qid}: ${status}|${cogShow} → ${quadrant}</span>`;
+        });
+        matrixHtml += `</div></div>`;
+        
+        // 雷达图数据
+        const radarLabels = ["词汇广度", "语法精准度", "语感知觉", "表达意愿", "学习适应性", "元认知准确度"];
+        const radarDataVals = [normalized.vocabulary, normalized.grammar, normalized.intuition, normalized.willingness, normalized.adaptability, normalized.metaCognition];
+        
+        // 偏好建议
+        let prefAdvice = "";
+        if (prefStyles.vocabMethod) prefAdvice += `📖 词汇记忆偏好: ${prefStyles.vocabMethod} → 推荐使用${prefStyles.vocabMethod === '语境型' ? '例句本/词汇搭配' : prefStyles.vocabMethod === '图像型' ? '闪卡+联想图' : prefStyles.vocabMethod === '听觉型' ? '有声词表' : '多感官书写'}法。`;
+        if (prefStyles.favActivity) prefAdvice += ` 🎯 课堂活动偏好: ${prefStyles.favActivity} → 建议安排${prefStyles.favActivity === '社交型' ? '小组讨论/角色扮演' : prefStyles.favActivity === '独立型' ? '阅读工作坊' : prefStyles.favActivity === '竞争型' ? '积分挑战赛' : '结构化精讲'}练习。`;
+        
+        const resultHtml = `
+            <div style="display:flex; flex-wrap:wrap; gap:2rem;">
+                <div style="flex:1; min-width:240px;"><canvas id="radarCanvas" width="300" height="300" style="max-width:100%; height:auto;"></canvas></div>
+                <div style="flex:2;">
+                    <div class="io-box"><strong>📊 输入-输出落差分析</strong><br>📖 输入能力指数: ${inputScore} &nbsp;|&nbsp; ✍️ 输出能力指数: ${outputScore}<br>落差: ${gap>0 ? '输入高出'+gap : '输出高出'+Math.abs(gap)} 分<br>${gapAdvice}</div>
+                    <div class="dim-grid">
+                        ${radarLabels.map((label, idx) => `<div class="dim-card"><strong>${label}</strong><div class="progress-bar"><div class="progress-fill" style="width:${radarDataVals[idx]}%;"></div></div><span>${radarDataVals[idx]}分</span></div>`).join('')}
+                    </div>
+                </div>
+            </div>
+            ${matrixHtml}
+            <div class="io-box" style="margin-top:12px;"><strong>🧭 个性化策略 (基于学习风格)</strong><br>${prefAdvice || "建议尝试多元学习策略，加强语境输入。"}<br><hr style="margin:10px 0;"><strong>分层教学推荐：</strong><br>
+            🔹 知识层: ${normalized.vocabulary<55?'加强核心词汇+高频搭配':normalized.grammar<55?'系统梳理语法+错题集训':'挑战长难句分析')}<br>
+            🔸 技能层: ${normalized.intuition<50?'每日沉浸输入15分钟(听播客/读分级)':normalized.willingness<45?'鼓励无压力输出:语音日记':'提升真实语料难度')}<br>
+            🔹 动力层: ${normalized.adaptability<50?'训练猜词策略+成长型思维':normalized.willingness<45?'建立微小成就感, 先动笔再求完美':'保持优势拓展输出场景')}<br>
+            🎯 核心处方: ${inputScore - outputScore > 15 ? '输出轰炸计划: 口语打卡+每周一篇小短文' : (outputScore - inputScore > 12 ? '可理解性输入强化: 分级阅读+精听' : '读写结合训练, 模仿优秀范文')}
+            </div>
+        `;
+        return { html: resultHtml, radarData: { labels: radarLabels, values: radarDataVals } };
+    }
+    
+    let radarChart = null;
+    function showReport() {
+        const res = generateDiagnosis();
+        if (!res) return;
+        const { html, radarData } = res;
+        const resultDiv = document.getElementById('resultArea');
+        const contentDiv = document.getElementById('resultContent');
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+        // 缓存诊断数据用于提交
+        const { normalized, actualReadPercent, prefStyles, doubleMetaRecords } = collectAndCompute();
+        const name = document.getElementById('studentName').value.trim() || "同学";
+        const grade = document.getElementById('studentGrade').value;
+        const inputScore = Math.round((normalized.vocabulary + normalized.grammar + actualReadPercent) / 3);
+        const outputScore = Math.round((normalized.willingness + normalized.intuition + normalized.grammar) / 3);
+        lastDiagnosisData = { name, grade, normalized, actualReadPercent, prefStyles, doubleMetaRecords, inputScore, outputScore, selfRatingReading };
+        document.getElementById('saveStatus').textContent = '';
+        setTimeout(() => {
+            const canvas = document.getElementById('radarCanvas');
+            if (canvas) {
+                if (radarChart) radarChart.destroy();
+                radarChart = new Chart(canvas, {
+                    type: 'radar',
+                    data: { labels: radarData.labels, datasets: [{ label: '当前能力剖面', data: radarData.values, backgroundColor: 'rgba(44,110,175,0.2)', borderColor: '#2c6eaf', borderWidth: 2, pointBackgroundColor: '#2c6eaf' }] },
+                    options: { responsive: true, maintainAspectRatio: true, scales: { r: { beginAtZero: true, max: 100 } } }
+                });
+            }
+        }, 80);
+        window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
+    }
+    
+    // 提交诊断数据到后端API
+    async function submitToServer() {
+        if (!lastDiagnosisData) {
+            alert('请先生成诊断报告');
+            return;
+        }
+        const d = lastDiagnosisData;
+        const statusEl = document.getElementById('saveStatus');
+        const btnEl = document.getElementById('saveBtn');
+        statusEl.textContent = '⏳ 保存中...';
+        statusEl.style.color = '#666';
+        btnEl.disabled = true;
+
+        // 重新计算gapAdvice
+        const gap = d.inputScore - d.outputScore;
+        let gapAdvice = '';
+        if (gap > 18) gapAdvice = '输入强/输出弱';
+        else if (gap < -12) gapAdvice = '输出倾向型';
+        else gapAdvice = '输入输出均衡';
+
+        // 构建偏好建议文本
+        let prefAdvice = '';
+        if (d.prefStyles.vocabMethod) prefAdvice += '词汇偏好:' + d.prefStyles.vocabMethod;
+        if (d.prefStyles.favActivity) prefAdvice += ' | 活动偏好:' + d.prefStyles.favActivity;
+
+        const payload = {
+            name: d.name,
+            grade: d.grade,
+            scores: {
+                grammar: d.normalized.grammar,
+                vocabulary: d.normalized.vocabulary,
+                intuition: d.normalized.intuition,
+                willingness: d.normalized.willingness,
+                adaptability: d.normalized.adaptability,
+                metaCognition: d.normalized.metaCognition
+            },
+            inputScore: d.inputScore,
+            outputScore: d.outputScore,
+            actualRead: d.actualReadPercent,
+            selfRating: d.selfRatingReading || 50,
+            gapAdvice: gapAdvice,
+            prefAdvice: prefAdvice,
+            matrixData: d.doubleMetaRecords
+        };
+
+        try {
+            const resp = await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (resp.ok) {
+                statusEl.textContent = '✅ 已保存！教师端可查看';
+                statusEl.style.color = '#16A34A';
+            } else {
+                throw new Error('请求失败: ' + resp.status);
+            }
+        } catch (err) {
+            statusEl.textContent = '❌ 保存失败: ' + err.message;
+            statusEl.style.color = '#E54545';
+        } finally {
+            btnEl.disabled = false;
+        }
+    }
+
+    function resetAll() {
+        document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+        const resultDiv = document.getElementById('resultArea');
+        if (resultDiv) resultDiv.style.display = 'none';
+        if (radarChart) { radarChart.destroy(); radarChart = null; }
+    }
+    
+    // 初始化
+    renderDoubleLayer();
+    renderSelfEval();
+    renderPref();
+    document.getElementById('diagnoseBtn').addEventListener('click', showReport);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+</script>
+</body>
+</html>

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语学习画像 · 诊断工具 v2</title>
+<style>
+  :root {
+    --gt: #00C48C; --gt-dark: #009A6C; --gt-light: #E8FAF4; --gt-bg: #F5FDF9;
+    --orange: #FF6B35; --orange-light: #FFF4EF;
+    --red: #E54545; --blue: #3B7CFF; --purple: #7C3AED;
+    --pink: #DB2777; --teal: #0D9488;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+    --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--gray-800); background: var(--gray-50); line-height: 1.7;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #009A6C 0%, #00C48C 100%);
+    color: #fff; padding: 52px 20px; text-align: center;
+  }
+  .hero h1 { font-size: 2em; letter-spacing: 2px; margin-bottom: 6px; }
+  .hero .sub { font-size: .95em; opacity: .9; margin-bottom: 12px; }
+  .hero .badge-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .hero .pill {
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25);
+    padding: 4px 16px; border-radius: 14px; font-size: .82em;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 36px 20px; }
+
+  /* Section */
+  .sec-title {
+    font-size: 1.3em; font-weight: 700; color: var(--gray-900);
+    margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 3px solid var(--gt);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title .n {
+    background: var(--gt); color: #fff;
+    width: 34px; height: 34px; border-radius: 9px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .68em; flex-shrink: 0;
+  }
+  .section-desc { color: var(--gray-600); font-size: 1em; margin-bottom: 24px; padding-left: 44px; }
+
+  /* Card */
+  .card {
+    background: #fff; border-radius: 12px; border: 1px solid var(--gray-200);
+    padding: 24px 28px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card h3 { color: var(--gt-dark); font-size: 1.05em; margin-bottom: 12px; }
+
+  /* Highlight boxes */
+  .hl-green { background: var(--gt-bg); border-left: 4px solid var(--gt); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 16px 0; font-size: .92em; }
+  .hl-orange { background: var(--orange-light); border-left: 4px solid var(--orange); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 16px 0; font-size: .92em; }
+  .hl-blue { background: #EEF5FF; border-left: 4px solid var(--blue); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 16px 0; font-size: .92em; }
+
+  /* Dimension cards */
+  .dim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  @media (max-width: 768px) { .dim-grid { grid-template-columns: 1fr; } }
+  .dim-card {
+    background: #fff; border-radius: 12px; border: 2px solid var(--gray-200);
+    padding: 22px 18px; transition: all .25s;
+  }
+  .dim-card:hover { border-color: var(--gt); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,196,140,.1); }
+  .dim-card .dim-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .dim-card .dim-icon {
+    width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3em; flex-shrink: 0; color: #fff;
+  }
+  .dim-card h4 { font-size: .98em; }
+  .dim-card .dim-en { font-size: .78em; color: var(--gray-500); margin-bottom: 6px; }
+  .dim-card p { font-size: .8em; color: var(--gray-600); line-height: 1.5; }
+  .dim-card .dim-signal { margin-top: 8px; font-size: .76em; color: var(--gray-500); background: var(--gray-50); padding: 6px 10px; border-radius: 6px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: .9em; margin: 14px 0; }
+  thead th { background: var(--gt-light); color: var(--gt-dark); font-weight: 600; text-align: left; padding: 12px 14px; border-bottom: 2px solid var(--gt); }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+  tbody tr:hover { background: var(--gt-bg); }
+  .tag {
+    display: inline-block; padding: 2px 9px; border-radius: 10px;
+    font-size: .78em; font-weight: 600; margin: 1px;
+  }
+  .t-v { background: #EEF2FF; color: #3B7CFF; }
+  .t-g { background: #FEF3C7; color: #B45309; }
+  .t-i { background: #F3E8FF; color: #7C3AED; }
+  .t-s { background: #FFF4EF; color: #FF6B35; }
+  .t-e { background: #FCE7F3; color: #DB2777; }
+  .t-a { background: #CCFBF1; color: #0D9488; }
+
+  /* Two-layer diagram */
+  .layer-demo {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    gap: 0; align-items: center; margin: 20px 0;
+  }
+  @media (max-width: 768px) { .layer-demo { grid-template-columns: 1fr; gap: 12px; } }
+  .layer-box {
+    background: #fff; border-radius: 10px; border: 2px solid var(--gray-200); padding: 20px;
+  }
+  .layer-box.l1 { border-color: var(--blue); }
+  .layer-box.l2 { border-color: var(--purple); }
+  .layer-box h4 { font-size: .9em; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .layer-box .lbadge {
+    display: inline-block; padding: 2px 10px; border-radius: 8px;
+    font-size: .75em; font-weight: 700; color: #fff;
+  }
+  .layer-box .example { font-size: .85em; color: var(--gray-700); background: var(--gray-50); padding: 10px 14px; border-radius: 8px; margin-top: 10px; }
+  .layer-plus { font-size: 1.6em; font-weight: 700; color: var(--gray-300); text-align: center; padding: 0 16px; }
+
+  /* Outcome matrix */
+  .matrix-cell { text-align: center; font-size: .85em; padding: 10px 8px; border-radius: 8px; }
+  .matrix-cell.hit { background: #D1FAE5; }
+  .matrix-cell.miss { background: #FEE2E2; }
+  .matrix-cell.warn { background: #FEF3C7; }
+
+  /* Report mock */
+  .report-mock {
+    background: #fff; border-radius: 16px; border: 1px solid var(--gray-200);
+    overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  }
+  .report-header {
+    background: linear-gradient(135deg, #009A6C, #00C48C);
+    color: #fff; padding: 28px 32px;
+  }
+  .report-body { padding: 28px 32px; }
+  .report-body h4 { color: var(--gt-dark); margin: 24px 0 12px; font-size: 1em; }
+  .report-body h4:first-child { margin-top: 0; }
+
+  .asym-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  @media (max-width: 768px) { .asym-grid { grid-template-columns: repeat(2, 1fr); } }
+  .asym-item { text-align: center; padding: 16px 12px; background: var(--gray-50); border-radius: 10px; }
+  .asym-item .big { font-size: 1.5em; font-weight: 700; }
+  .asym-item .lbl { font-size: .78em; color: var(--gray-500); }
+  .asym-item .gap { font-size: .75em; margin-top: 2px; }
+  .gap-bad { color: var(--red); font-weight: 600; }
+  .gap-ok { color: var(--orange); font-weight: 600; }
+
+  .radar-wrap { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; margin: 16px 0; background: var(--gt-bg); border-radius: 14px; padding: 20px; }
+
+  .sug-card {
+    padding: 16px; border-radius: 10px; border: 1px solid var(--gray-200);
+    margin-bottom: 10px; background: #fff;
+  }
+  .sug-card.weak { border-left: 4px solid var(--red); background: #FFF5F5; }
+  .sug-card.ok { border-left: 4px solid var(--orange); background: #FFFBF5; }
+  .sug-card.strong { border-left: 4px solid var(--gt); background: var(--gt-bg); }
+  .sug-card h5 { font-size: .92em; margin-bottom: 2px; }
+  .sug-card p { font-size: .84em; color: var(--gray-600); line-height: 1.5; }
+
+  /* Flow */
+  .flow-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+  .flow-step {
+    background: #fff; border-radius: 10px; border: 2px solid var(--gray-200);
+    padding: 14px 18px; text-align: center; min-width: 90px;
+  }
+  .flow-step .fs-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--gt); color: #fff; font-weight: 700; font-size: .8em;
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 4px;
+  }
+  .flow-arrow { font-size: 1.2em; color: var(--gray-300); }
+
+  .demo-box {
+    background: linear-gradient(135deg, #FFF4EF, #FFE8DD);
+    border: 2px dashed var(--orange);
+    border-radius: 14px; padding: 28px; text-align: center; margin: 28px 0;
+  }
+  .demo-box h4 { color: var(--orange); margin-bottom: 6px; }
+
+  footer {
+    background: var(--gray-900); color: var(--gray-400);
+    text-align: center; padding: 32px; font-size: .85em;
+  }
+  footer .gt { color: var(--gt); font-weight: 600; }
+
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 6px;
+    font-size: .8em; font-weight: 500; margin: 1px;
+    background: var(--gray-100); color: var(--gray-700);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>英语学习画像 · 诊断工具 v2</h1>
+  <div class="sub">不回答"考了多少分"，回答"该怎么学这门课"</div>
+  <div class="badge-row">
+    <span class="pill">多维画像取代单维分数</span>
+    <span class="pill">题目即传感器 · 选项即采样点</span>
+    <span class="pill">识别层+认知层双层探测</span>
+    <span class="pill">输出教学建议 · 不输出排名</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ====== 一、核心洞察：输入-输出不对称 ====== -->
+<div class="sec-title"><span class="n">1</span>核心洞察：英语学科的独特性 —— 输入-输出不对称</div>
+<div class="section-desc">
+  英语诊断最本质的发现，是同一个学生的<strong>输入能力</strong>（听、读）和<strong>输出能力</strong>（说、写）之间存在显著落差。这在其他学科几乎不存在——数学不会出现"能看懂题目但解不出来"对应于两种完全不同的能力——而英语中这是<strong>最典型的分化模式</strong>。
+</div>
+
+<div class="card">
+  <h3>同一个总分，完全不同的剖面</h3>
+  <table>
+    <thead><tr><th></th><th>学生 A（85分）</th><th>学生 B（85分）</th></tr></thead>
+    <tbody>
+      <tr><td><strong>阅读</strong></td><td>✅ 看得懂，正确率高</td><td>⚠ 勉强看懂，靠技巧选题</td></tr>
+      <tr><td><strong>写作</strong></td><td>🔴 写不出来，词汇语法错误多</td><td>✅ 能用模板写出工整的短文</td></tr>
+      <tr><td><strong>听力</strong></td><td>✅ 听得懂大意</td><td>⚠ 抓不住关键信息</td></tr>
+      <tr><td><strong>口语</strong></td><td>🔴 开口就卡，不敢说</td><td>⚠ 愿意说但错误多</td></tr>
+      <tr><td><strong>剖面类型</strong></td><td><span class="tag t-e">输入强 / 输出弱</span></td><td><span class="tag t-s">输入输出均等偏低</span></td></tr>
+      <tr><td><strong>教学策略</strong></td><td>主攻表达输出训练，保护信心</td><td>主攻词汇语法基础，同时建立策略</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="hl-orange">
+  <strong>核心设计原则：</strong>诊断报告不仅要给出各维度分数，还要专门给出<strong>输入-输出落差分析</strong>。同一个学生，阅读 80 分 + 写作 40 分 ≠ 这个学生"英语不好"，而是"这个学生的英语输入能力已经到位，输出能力严重滞后，需要的是表达训练而非更多阅读"。
+</div>
+
+<!-- ====== 二、六维能力模型 ====== -->
+<div class="sec-title"><span class="n">2</span>六维能力模型 · 2026版</div>
+<div class="section-desc">
+  在原始五维度基础上优化：更聚焦英语学科特有的能力剖面，并新增英语独有的<strong>学习适应性</strong>维度。六个维度分为三个层级。
+</div>
+
+<div class="dim-grid">
+  <!-- 1. 词汇广度 -->
+  <div class="dim-card">
+    <div class="dim-header">
+      <div class="dim-icon" style="background:var(--blue);">📚</div>
+      <h4>词汇广度</h4>
+    </div>
+    <div class="dim-en">Vocabulary Breadth</div>
+    <p><strong>测什么：</strong>认识多少词、能否准确理解词义、词汇的宽度而非深度。</p>
+    <div class="dim-signal">❓ 核心诊断问题：学生是"词汇量不够所以读不懂"，还是"词汇量够但用不出来"？</div>
+  </div>
+
+  <!-- 2. 语法精准度 -->
+  <div class="dim-card">
+    <div class="dim-header">
+      <div class="dim-icon" style="background:#B45309;">🏗️</div>
+      <h4>语法精准度</h4>
+    </div>
+    <div class="dim-en">Grammar Precision</div>
+    <p><strong>测什么：</strong>语法规则的显性掌握和正确应用程度，强调"精准"而非"大概知道"。</p>
+    <div class="dim-signal">❓ 核心诊断问题：学生是"完全不知道规则"，还是"知道规则但用的时候忘了"？</div>
+  </div>
+
+  <!-- 3. 阅读速度与策略 -->
+  <div class="dim-card">
+    <div class="dim-header">
+      <div class="dim-icon" style="background:var(--orange);">⚡</div>
+      <h4>阅读速度与策略</h4>
+    </div>
+    <div class="dim-en">Reading Speed & Strategy</div>
+    <p><strong>测什么：</strong>英文阅读的自动化程度 + 遇到障碍时的策略选择（跳读/猜词/回读/放弃）。</p>
+    <div class="dim-signal">❓ 核心诊断问题：学生是"英语→中文→理解"的翻译模式，还是"英语→理解"的直接模式？</div>
+  </div>
+
+  <!-- 4. 语感知觉 -->
+  <div class="dim-card">
+    <div class="dim-header">
+      <div class="dim-icon" style="background:var(--purple);">💡</div>
+      <h4>语感知觉</h4>
+    </div>
+    <div class="dim-en">Language Intuition</div>
+    <p><strong>测什么：</strong>对英语自然度的隐性感知——"读起来顺不顺""听起来对不对"，不依赖规则，依赖大量输入形成的隐性判断。</p>
+    <div class="dim-signal">❓ 核心诊断问题：学生是靠规则做对题，还是靠"感觉"？这两类学生后续训练路径完全不同。</div>
+  </div>
+
+  <!-- 5. 表达意愿 -->
+  <div class="dim-card">
+    <div class="dim-header">
+      <div class="dim-icon" style="background:var(--pink);">🔥</div>
+      <h4>表达意愿</h4>
+    </div>
+    <div class="dim-en">Expression Willingness</div>
+    <p><strong>测什么：</strong>是否愿意开口说英语、动笔写英语，是否因害怕犯错而回避输出。这是输出能力的"油门"。</p>
+    <div class="dim-signal">❓ 核心诊断问题：学生写不出来是因为"不会写"还是"不敢写"？这是两个完全不同的根因。</div>
+  </div>
+
+  <!-- 6. 学习适应性 -->
+  <div class="dim-card">
+    <div class="dim-header">
+      <div class="dim-icon" style="background:var(--teal);">🧭</div>
+      <h4>学习适应性</h4>
+    </div>
+    <div class="dim-en">Learning Adaptability</div>
+    <p><strong>测什么：</strong>面对不认识的词、看不懂的句子时的应对策略。是猜、是跳、是查、还是放弃？这是英语（非母语）独有的核心能力。</p>
+    <div class="dim-signal">❓ 核心诊断问题：学生遇到不懂的信息时，第一反应是什么？这个反应决定了他在无人辅导时的学习效率。</div>
+  </div>
+</div>
+
+<div class="hl-green">
+  <strong>六维度三层级：</strong><br>
+  <strong>知识层</strong>（词汇广度 + 语法精准度）→ 可以"教"出来的显性知识<br>
+  <strong>技能层</strong>（阅读速度与策略 + 语感知觉）→ 必须通过大量训练"长"出来的隐性能力<br>
+  <strong>动力层</strong>（表达意愿 + 学习适应性）→ 决定了前两个层能走多远、多快<br>
+  传统考试只看知识层，诊断工具必须三个层都覆盖。
+</div>
+
+<!-- ====== 三、双层题目设计 ====== -->
+<div class="sec-title"><span class="n">3</span>双层题目设计：识别层 + 认知层</div>
+<div class="section-desc">
+  这是诊断工具最核心的方法论创新。传统题目只有一层——"选对还是选错"。双层题目在知识选择之上叠加一层<strong>认知追问</strong>，区分"知道规则"和"内化规则"两种完全不同的认知状态，这两类学生后续需要<strong>完全不同的训练路径</strong>。
+</div>
+
+<div class="layer-demo">
+  <div class="layer-box l1">
+    <h4><span class="lbadge" style="background:var(--blue);">第一层 · 识别层</span> 知识应用</h4>
+    <p style="font-size:.85em;">传统的知识选择题，测学生"会不会"</p>
+    <div class="example">
+      <strong>She ___ to school every day.</strong><br>
+      A. go &nbsp; B. goes &nbsp; C. going &nbsp; D. went<br>
+      <span style="color:var(--gray-500);">→ 选 B ✓（对错判断）</span>
+    </div>
+  </div>
+  <div class="layer-plus">+</div>
+  <div class="layer-box l2">
+    <h4><span class="lbadge" style="background:var(--purple);">第二层 · 认知层</span> 过程追问</h4>
+    <p style="font-size:.85em;">追问"你是怎么选出这个答案的"，测学生"怎么会的"</p>
+    <div class="example">
+      <strong>你刚才选答案的时候，主要是靠什么？</strong><br>
+      A. 我记得语法规则（第三人称单数要加 -s）<br>
+      B. 读起来顺口，感觉这个是对的<br>
+      C. 排除了其他选项，只剩下这个<br>
+      D. 不太确定，猜的
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>双层叠加后的四象限诊断矩阵</h3>
+  <table>
+    <thead><tr><th></th><th>选对了 ✓</th><th>选错了 ✗</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>靠规则</strong><br><span style="font-size:.8em;color:var(--gray-500);">（认知层选 A）</span></td>
+        <td class="matrix-cell hit"><strong>显性掌握</strong><br>知道规则，能用对<br>→ 需要：内化训练，把规则变语感</td>
+        <td class="matrix-cell warn"><strong>规则应用错误</strong><br>知道规则，但用的时候错了<br>→ 需要：精准练习，定位应用环节的断点</td>
+      </tr>
+      <tr>
+        <td><strong>靠语感</strong><br><span style="font-size:.8em;color:var(--gray-500);">（认知层选 B）</span></td>
+        <td class="matrix-cell hit"><strong>内化掌握</strong><br>已经把规则变成了直觉<br>→ 需要：显性化，能讲出"为什么"</td>
+        <td class="matrix-cell miss"><strong>语感偏差</strong><br>直觉错了，需要建立正确语感<br>→ 需要：大量正确输入 + 对比练习</td>
+      </tr>
+      <tr>
+        <td><strong>靠策略 / 猜</strong><br><span style="font-size:.8em;color:var(--gray-500);">（认知层选 C/D）</span></td>
+        <td class="matrix-cell hit"><strong>应试技巧有效</strong><br>靠排除法或运气做对<br>→ 需要：补知识基础，不能一直靠策略</td>
+        <td class="matrix-cell miss"><strong>知识空白</strong><br>既不懂规则也没语感<br>→ 需要：从头建立知识+输入体系</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="hl-blue">
+  <strong>为什么两层数据叠加如此重要？</strong><br>
+  同样一道题选对了，<strong>"靠规则选对"</strong>和<strong>"靠语感选对"</strong>意味着完全不同的学习阶段：前者是显性知识（知道规则），需要的是大量输入让规则自动化；后者是隐性知识（内化规则），需要的是把直觉显性化、能应对更复杂的语法情境。<br><br>
+  如果诊断工具只记录对错，这两个学生会被归为"同一类"，但他们的教学路径应该截然不同。这就是双层设计的核心价值。
+</div>
+
+<!-- ====== 四、混合题型设计 ====== -->
+<div class="sec-title"><span class="n">4</span>混合题型 × 六维信号采集</div>
+<div class="section-desc">
+  四种题型各自采集不同层次的信号，合在一起构成完整的六维画像。每道题目都设计为"传感器"，每个选项都在特定维度上产生信号。
+</div>
+
+<div class="card">
+  <h3>题型一：情景判断（采集：学习适应性 + 表达意愿 + 策略）</h3>
+  <table>
+    <thead><tr><th>题目</th><th>选项 A</th><th>选项 B</th><th>选项 C</th><th>选项 D</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>读英语文章遇到不认识的词，你通常？</strong></td>
+        <td>根据上下文猜意思<br><span class="tag t-a">适应性+2</span><span class="tag t-s">策略+1</span></td>
+        <td>马上查字典<br><span class="tag t-a">适应性-1</span><span class="tag t-s">速度-1</span></td>
+        <td>跳过，继续读<br><span class="tag t-a">适应性+1</span></td>
+        <td>觉得烦躁，不想读了<br><span class="tag t-a">适应性-2</span><span class="tag t-e">意愿-2</span></td>
+      </tr>
+      <tr>
+        <td><strong>老师说"谁来用英语回答这个问题"，你通常？</strong></td>
+        <td>主动举手<br><span class="tag t-e">意愿+3</span></td>
+        <td>心里有答案但不想举手<br><span class="tag t-e">意愿-1</span></td>
+        <td>低头，希望别叫我<br><span class="tag t-e">意愿-2</span></td>
+        <td>看情况，简单的就举手<br><span class="tag t-e">意愿+1</span><span class="tag t-a">适应性+1</span></td>
+      </tr>
+      <tr>
+        <td><strong>做英语听力时有一段没听懂，你通常？</strong></td>
+        <td>继续听，抓住后面能懂的部分<br><span class="tag t-a">适应性+2</span><span class="tag t-s">策略+1</span></td>
+        <td>卡住了，反复回忆刚才那段<br><span class="tag t-a">适应性-2</span><span class="tag t-s">速度-1</span></td>
+        <td>放弃这段，随便选<br><span class="tag t-a">适应性-1</span><span class="tag t-e">意愿-1</span></td>
+        <td>根据上下文猜答案<br><span class="tag t-a">适应性+1</span><span class="tag t-s">策略+1</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>题型二：知识点理解 双层题（采集：词汇广度 + 语法精准度 + 语感知觉）</h3>
+  <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:14px;">
+    <div style="font-weight:700;margin-bottom:8px;color:var(--blue);">【识别层】示例</div>
+    <strong>Q: "She ___ to school every day."</strong><br>
+    A. go &nbsp;&nbsp; B. goes &nbsp;&nbsp; C. going &nbsp;&nbsp; D. went
+    <div style="margin-top:8px;font-size:.85em;color:var(--gray-500);">
+      选项 A：主谓不一致 → <span class="tag t-g">语法-1</span><br>
+      选项 B：正确 → <span class="tag t-g">语法+2</span> <span class="tag t-i">语感+1</span><br>
+      选项 C：形式混淆 → <span class="tag t-g">语法-1</span><br>
+      选项 D：时态混淆 → <span class="tag t-g">语法-2</span> <span class="tag t-i">语感-1</span>
+    </div>
+  </div>
+  <div style="background:var(--gray-50);border-radius:8px;padding:16px;">
+    <div style="font-weight:700;margin-bottom:8px;color:var(--purple);">【认知层】追问</div>
+    <strong>Q: 你刚才选答案主要是靠什么？</strong><br>
+    A. 记得语法规则 → <span class="tag">显性知识型</span><br>
+    B. 读起来顺口 → <span class="tag">隐性语感型</span><br>
+    C. 排除了其他选项 → <span class="tag">策略补偿型</span><br>
+    D. 不太确定 → <span class="tag">低信心型</span>
+    <div style="margin-top:8px;font-size:.83em;color:var(--gray-500);">
+      ⚠ 识别层+认知层叠加后，进入四象限矩阵做精准分类
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>题型三：自我评估（采集：元认知准确度 + 表达意愿）</h3>
+  <table>
+    <thead><tr><th>题目</th><th>采集什么</th><th>信号解读</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>"你觉得自己的英语阅读能力怎么样？"</strong><br>对比实际阅读得分</td>
+        <td>自我认知准确度</td>
+        <td>实际高 + 自评高 → 认知准确<br>实际高 + 自评低 → <span class="tag t-e">信心不足</span><br>实际低 + 自评高 → <span class="tag t-a">元认知偏差</span></td>
+      </tr>
+      <tr>
+        <td><strong>"如果用英语写一段话介绍自己，你愿意试试吗？"</strong></td>
+        <td>输出焦虑程度</td>
+        <td>愿意 → <span class="tag t-e">意愿+2</span><br>犹豫 → <span class="tag t-e">意愿-1</span><br>拒绝 → <span class="tag t-e">意愿-2</span> <span class="tag">需关注</span></td>
+      </tr>
+      <tr>
+        <td><strong>"你觉得学英语最难的是什么？"</strong></td>
+        <td>归因模式</td>
+        <td>归因于具体可改善因素（"我单词背得少"）→ <span class="tag t-a">适应性+2</span><br>归因于不可控因素（"英语太难了"）→ <span class="tag t-a">适应性-1</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>题型四：偏好配对（采集：学习风格 → 个性化策略推荐）</h3>
+  <table>
+    <thead><tr><th>题目</th><th>选项 A</th><th>选项 B</th><th>选项 C</th><th>选项 D</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>哪种方式帮你背单词最有效？</strong></td>
+        <td>反复抄写<br><span class="badge">动觉型</span></td>
+        <td>大声朗读<br><span class="badge">听觉型</span></td>
+        <td>放到句子里用<br><span class="badge">语境型</span></td>
+        <td>看图或联想<br><span class="badge">图像型</span></td>
+      </tr>
+      <tr>
+        <td><strong>英语课上你最喜欢哪种活动？</strong></td>
+        <td>角色扮演/对话<br><span class="badge">社交型</span></td>
+        <td>听老师讲解<br><span class="badge">结构型</span></td>
+        <td>自己读故事<br><span class="badge">独立型</span></td>
+        <td>做游戏/比赛<br><span class="badge">竞争型</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="font-size:.83em;color:var(--gray-500);margin-top:8px;">
+    ⚠ 偏好配对不直接给维度打分，而是为教学建议中的"推荐学习方式"提供个性化依据。
+  </div>
+</div>
+
+<!-- ====== 五、诊断报告 ====== -->
+<div class="sec-title"><span class="n">5</span>诊断报告输出（教师/家长视图）</div>
+
+<div class="report-mock">
+  <div class="report-header">
+    <h3>📊 英语学习画像 · 诊断报告</h3>
+    <div style="font-size:.85em;opacity:.85;margin-top:4px;">学生：张同学 &nbsp;|&nbsp; 诊断时间：2026.05.23 &nbsp;|&nbsp; 小升初衔接阶段</div>
+  </div>
+  <div class="report-body">
+
+    <!-- 输入输出不对称 -->
+    <h4>输入-输出不对称分析</h4>
+    <div style="background:#FEF2F2;border-radius:10px;padding:16px 20px;margin-bottom:16px;">
+      <strong>🔴 显著不对称：输入 >> 输出</strong><br>
+      <span style="font-size:.9em;">该生阅读和听力处于中等偏上水平，但写作和口语表达严重滞后。这不是"英语不好"，而是典型的输入输出断层——输入管道已经建立，输出管道还没打通。当前最需要的不是更多阅读，而是系统的输出训练 + 降低表达焦虑。</span>
+    </div>
+    <div class="asym-grid">
+      <div class="asym-item">
+        <div style="font-size:.78em;color:var(--gray-500);">阅读（输入）</div>
+        <div class="big" style="color:var(--gt-dark);">82</div>
+      </div>
+      <div class="asym-item">
+        <div style="font-size:.78em;color:var(--gray-500);">听力（输入）</div>
+        <div class="big" style="color:var(--gt-dark);">76</div>
+      </div>
+      <div class="asym-item">
+        <div style="font-size:.78em;color:var(--gray-500);">写作（输出）</div>
+        <div class="big" style="color:var(--red);">38</div>
+        <div class="gap gap-bad">↓ 输入输出落差 44 分</div>
+      </div>
+      <div class="asym-item">
+        <div style="font-size:.78em;color:var(--gray-500);">口语（输出）</div>
+        <div class="big" style="color:var(--red);">35</div>
+        <div class="gap gap-bad">↓ 输入输出落差 41 分</div>
+      </div>
+    </div>
+
+    <!-- 六维雷达图 -->
+    <h4>六维能力雷达图</h4>
+    <div class="radar-wrap">
+      <canvas id="radar" width="340" height="340"></canvas>
+      <div style="font-size:.84em;text-align:left;line-height:2.2;">
+        <div>📚 词汇广度：<strong style="color:#3B7CFF;">78</strong></div>
+        <div>🏗️ 语法精准度：<strong style="color:#B45309;">65</strong></div>
+        <div>⚡ 阅读速度与策略：<strong style="color:#FF6B35;">58</strong> <span style="color:#E54545;font-size:.8em;">⚠</span></div>
+        <div>💡 语感知觉：<strong style="color:#7C3AED;">82</strong></div>
+        <div>🔥 表达意愿：<strong style="color:#DB2777;">35</strong> <span style="color:#E54545;font-size:.8em;">⚠⚠</span></div>
+        <div>🧭 学习适应性：<strong style="color:#0D9488;">70</strong></div>
+        <div style="margin-top:6px;font-size:.8em;color:var(--gray-500);">
+          知识层：78 / 65 &nbsp;|&nbsp; 技能层：58 / 82 &nbsp;|&nbsp; 动力层：35 / 70
+        </div>
+      </div>
+    </div>
+
+    <!-- 规则vs语感 双层分析 -->
+    <h4>知识内化程度分析（双层题目数据）</h4>
+    <table>
+      <thead><tr><th>题型</th><th>识别层正确率</th><th>认知层：靠规则选</th><th>认知层：靠语感选</th><th>认知层：靠策略/猜</th><th>诊断结论</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>语法选择</td><td>72%</td><td>45%</td><td>35%</td><td>20%</td>
+          <td>规则掌握中等，尚未内化为语感。答对的题里有近一半是靠规则"算"出来的，不是靠感觉"流"出来的 → <strong>需要大量输入训练把规则自动化</strong></td>
+        </tr>
+        <tr>
+          <td>词汇辨析</td><td>85%</td><td>30%</td><td>55%</td><td>15%</td>
+          <td>词汇题更多靠语感做对，说明词汇已经有一定内化基础 → <strong>继续保持输入习惯，加强拼写精准度</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 教学建议 -->
+    <h4>针对性教学建议</h4>
+    <div class="sug-card weak">
+      <h5>🔥 表达意愿 —— 【最高优先级】需立即干预</h5>
+      <p>该生对输出有显著回避。识别层的知识题能做对，但一旦要求开口或动笔就退缩。<strong>这不是能力问题，是输出焦虑问题。</strong><br>
+      建议：① 从"低风险输出"开始——先让写一句话而不是一段话，先说一个词而不是一句话；② 输出训练初期不纠错，先建立"开口不丢人"的安全感；③ 用"模仿-替换-创造"三步法渐进式推进写作。</p>
+    </div>
+    <div class="sug-card weak">
+      <h5>⚡ 阅读速度与策略 —— 需要突破</h5>
+      <p>双层数据显示，该生在语法题上靠规则"算"的比例偏高（45%），说明大脑还在走"英语→规则→理解"的慢通路，而非直接通路。<br>
+      建议：① 限时阅读训练：每天1篇短文，计时，逐步压缩时间；② 影子跟读法：听+跟读同步，减少大脑翻译中转；③ 高频句型做闪卡反应训练，目标 1.5 秒内完成识别。</p>
+    </div>
+    <div class="sug-card ok">
+      <h5>🏗️ 语法精准度 —— 系统梳理即可</h5>
+      <p>规则知道但不够精准，体现在"用的时候偶尔出错"。结合双层数据，45%的题靠规则选对说明规则框架已建立。<br>
+      建议：① 用错题反向归纳：把错题按错误类型分类，让学生自己总结规律；② 刻意对比训练：She goes / She is going / She went 三句并列呈现。</p>
+    </div>
+    <div class="sug-card strong">
+      <h5>💡 语感知觉 —— 优势维度，作为突破口</h5>
+      <p>语感 82 分是六维中最高的。可以利用语感优势反哺其他维度：让学生从"觉得顺口"的句子中反向总结语法规律（归纳法），效果比直接讲规则（演绎法）更适合这类学生。</p>
+    </div>
+
+    <h4>一句话画像 + 路径建议</h4>
+    <div style="background:var(--gt-bg);border-radius:8px;padding:16px 20px;font-size:.93em;">
+      <strong>"语感好，但被表达焦虑锁住了输出能力。"</strong><br>
+      该生英语的隐性基础（语感、词汇）已经建立，显性规则（语法）中等，最大瓶颈是输出端——既缺速度也缺意愿。<br>
+      小升初阶段的策略：<strong>先把表达的门槛降下来</strong>——让他觉得"写英语不吓人、说英语不丢人"——然后同步拉升加工速度。<br>
+      第一个目标：两个月内，写作从 38 提到 55+，表达意愿从 35 提到 55+。
+    </div>
+  </div>
+</div>
+
+<!-- ====== 六、完整流程 ====== -->
+<div class="sec-title"><span class="n">6</span>完整诊断流程</div>
+
+<div class="flow-row">
+  <div class="flow-step"><div class="fs-num">1</div>15-20分钟<br>在线诊断</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="fs-num">2</div>双层信号<br>采集+叠加</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="fs-num">3</div>六维评分<br>+ 输入输出落差</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="fs-num">4</div>规则vs语感<br>内化度分析</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="fs-num">5</div>教学建议<br>+ 学习路径</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="fs-num">6</div>定期复诊<br>趋势追踪</div>
+</div>
+
+<div class="card">
+  <h3>新版 vs 旧版关键区别</h3>
+  <table>
+    <thead><tr><th>维度</th><th>传统诊断 / v1</th><th>v2（当前设计）</th></tr></thead>
+    <tbody>
+      <tr><td><strong>核心洞察</strong></td><td>只看各维度独立分数</td><td>增加输入-输出不对称分析，这是英语独有的诊断价值</td></tr>
+      <tr><td><strong>维度数量</strong></td><td>5 维度</td><td>6 维度，新增学习适应性（英语非母语特有的能力）</td></tr>
+      <tr><td><strong>题目结构</strong></td><td>单层：选对/选错</td><td>双层：识别层 + 认知层，区分"知道规则"和"内化规则"</td></tr>
+      <tr><td><strong>诊断精度</strong></td><td>知道学生哪个维度弱</td><td>知道学生是"不会"还是"不敢"、是"靠规则"还是"靠语感"</td></tr>
+      <tr><td><strong>教学建议</strong></td><td>通用建议</td><td>基于双层层数据，区分"需要显性教学"还是"需要内化训练"两类路径</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ====== 七、待确认 ====== -->
+<div class="sec-title"><span class="n">7</span>待确认的设计决策</div>
+
+<table>
+  <thead><tr><th>决策点</th><th>选项 A</th><th>选项 B</th><th>当前建议</th></tr></thead>
+  <tbody>
+    <tr><td><strong>维度数量</strong></td><td>保持 5 维（去掉学习适应性）</td><td>6 维（含学习适应性）</td><td>建议 6 维。学习适应性在英语中是不可替代的独立维度</td></tr>
+    <tr><td><strong>双层题目占比</strong></td><td>所有知识题都加认知层追问（题量翻倍感知）</td><td>知识题中 50% 加认知层追问</td><td>建议全部加。认知层只需 1 道追问，不显著增加负担</td></tr>
+    <tr><td><strong>题型配比</strong></td><td>情景判断 3 + 知识点 8 + 自我评估 4 + 偏好 2 = 17 题</td><td>减少题量，每种 2-3 题，总计 12 题</td><td>建议先做 17 题完整版，后续可出 12 题快筛版</td></tr>
+    <tr><td><strong>适用学段</strong></td><td>仅小升初</td><td>小升初 + 初一 + 初二 三个版本</td><td>建议先打小升初版本，确认诊断模型有效后横向扩展</td></tr>
+    <tr><td><strong>数据存储</strong></td><td>浏览器本地存储（单机）</td><td>后端数据库（多人协作）</td><td>先单机版，二讲老师个人使用场景足够了</td></tr>
+  </tbody>
+</table>
+
+<div class="demo-box">
+  <h4>🎯 下一步：构建可用的诊断原型</h4>
+  <p>以上是 v2 完整设计方案。如果方向确认，我下一步就把它做成一个<strong>真正能用的诊断工具</strong>——</p>
+  <p style="font-size:.9em;margin-top:8px;">
+    包含完整的 17 道双层诊断题 + 信号采集引擎 + 六维评分 + 输入输出落差分析 + 规则vs语感内化度分析 + 雷达图 + 自动输出教学建议，<strong>双击 HTML 就能用</strong>。
+  </p>
+  <p style="font-size:.85em;color:var(--gray-500);margin-top:10px;">
+    请重点确认：① 六维模型是否认可？② 双层题目设计逻辑是否对？③ 输入输出不对称分析是否是你想要的？
+  </p>
+</div>
+
+</div><!-- container -->
+
+<footer>
+  <span class="gt">高途</span> &nbsp;·&nbsp; 英语学习画像诊断工具 &nbsp;·&nbsp; 设计方案 v2 &nbsp;·&nbsp; 二讲老师专用
+</footer>
+
+<script>
+(function(){
+  var c = document.getElementById('radar');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height, cx = W/2, cy = H/2, r = 125;
+  var labels = ['词汇广度','语法精准','阅读速度\n与策略','语感知觉','表达意愿','学习适应'];
+  var scores = [78, 65, 58, 82, 35, 70];
+  var colors = ['#3B7CFF','#B45309','#FF6B35','#7C3AED','#DB2777','#0D9488'];
+  var n = labels.length;
+
+  for (var lvl = 1; lvl <= 4; lvl++) {
+    ctx.beginPath();
+    for (var i = 0; i < n; i++) {
+      var ang = -Math.PI/2 + (2*Math.PI/n)*i;
+      var rr = r * lvl/4;
+      var x = cx + rr * Math.cos(ang);
+      var y = cy + rr * Math.sin(ang);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = lvl===4 ? '#cbd5e1' : '#e5e7eb';
+    ctx.lineWidth = lvl===4 ? 1.5 : 1;
+    ctx.stroke();
+  }
+
+  for (var i = 0; i < n; i++) {
+    var ang = -Math.PI/2 + (2*Math.PI/n)*i;
+    var x = cx + r * Math.cos(ang);
+    var y = cy + r * Math.sin(ang);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y);
+    ctx.strokeStyle = '#d1d5db'; ctx.stroke();
+
+    var lx = cx + (r+34) * Math.cos(ang);
+    var ly = cy + (r+34) * Math.sin(ang);
+    ctx.fillStyle = '#1f2937';
+    ctx.font = 'bold 12px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var lines = labels[i].split('\n');
+    if (lines.length === 1) {
+      ctx.fillText(lines[0], lx, ly);
+    } else {
+      ctx.fillText(lines[0], lx, ly-7);
+      ctx.fillText(lines[1], lx, ly+7);
+    }
+  }
+
+  ctx.beginPath();
+  for (var i = 0; i < n; i++) {
+    var ang = -Math.PI/2 + (2*Math.PI/n)*i;
+    var rr = r * scores[i]/100;
+    var x = cx + rr * Math.cos(ang);
+    var y = cy + rr * Math.sin(ang);
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,196,140,.12)';
+  ctx.fill();
+  ctx.strokeStyle = '#00C48C'; ctx.lineWidth = 2.8; ctx.stroke();
+
+  for (var i = 0; i < n; i++) {
+    var ang = -Math.PI/2 + (2*Math.PI/n)*i;
+    var rr = r * scores[i]/100;
+    var x = cx + rr * Math.cos(ang);
+    var y = cy + rr * Math.sin(ang);
+    ctx.beginPath(); ctx.arc(x, y, 5.5, 0, 2*Math.PI);
+    ctx.fillStyle = colors[i]; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Score label
+    var slx = cx + (rr+13) * Math.cos(ang);
+    var sly = cy + (rr+13) * Math.sin(ang);
+    ctx.fillStyle = colors[i];
+    ctx.font = 'bold 11px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillText(scores[i], slx, sly);
+  }
+
+  // Center dot
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, 2*Math.PI);
+  ctx.fillStyle = '#00C48C'; ctx.fill();
+})();
+</script>
+
+</body>
+</html>
