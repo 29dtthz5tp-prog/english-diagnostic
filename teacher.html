@@ -154,7 +154,7 @@ footer .gt{color:var(--r);font-weight:600}
 
 <div class="topbar">
   <h1>📊 班级英语画像总览</h1>
-  <div class="sub">高途 · 二讲老师后台 &nbsp;|&nbsp; 学生端数据自动同步</div>
+  <div class="sub" id="syncStatus">⏳ 正在连接云端...</div>
 </div>
 
 <div class="wrap">
@@ -226,19 +226,75 @@ const COLLECTION = 'students';
 let allStudents = [];
 
 // ==================== DATA ====================
+function loadLocalData() {
+  var local = [];
+  try {
+    var raw = localStorage.getItem('gt_eng_diag_students');
+    if (raw) { local = JSON.parse(raw); }
+  } catch(_) {}
+  // Normalize
+  local.forEach(function(s, i) {
+    if (!s.id) s.id = 90000 + i;
+    if (!s.vocab && s.std) { s.vocab = s.std.vocab || 0; s.grammar = s.std.grammar || 0; s.speed = s.std.speed || 0; s.intuition = s.std.intuition || 0; s.express = s.std.express || 0; s.adapt = s.std.adapt || 0; }
+    if (!s.inputScore) s.inputScore = 0;
+    if (!s.outputScore) s.outputScore = 0;
+    if (!s.gap) s.gap = 0;
+    if (!s.date) s.date = s.timestamp ? s.timestamp.slice(0, 10) : '';
+    if (!s.typeId) s.typeId = s.type || '';
+    if (!s.typeName) s.typeName = s.type || '';
+    if (!s.typeIcon) s.typeIcon = '';
+    if (!s.weakKey) s.weakKey = '';
+    if (!s.strongKey) s.strongKey = '';
+    if (Array.isArray(s.cogData)) { s.cogData = s.cogData; }
+    else if (typeof s.cogData === 'string') { try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; } }
+    else { s.cogData = []; }
+    if (Array.isArray(s.stylePrefs)) { s.stylePrefs = s.stylePrefs; }
+    else if (typeof s.stylePrefs === 'string') { try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; } }
+    else { s.stylePrefs = []; }
+    s.std = { vocab: s.vocab || 0, grammar: s.grammar || 0, speed: s.speed || 0, intuition: s.intuition || 0, express: s.express || 0, adapt: s.adapt || 0 };
+  });
+  return local;
+}
+
+function mergeData(serverData, localData) {
+  var seen = {};
+  var merged = [];
+  (serverData || []).forEach(function(s) {
+    var key = s.name + '|||' + s.grade + '|||' + s.date;
+    if (!seen[key]) { seen[key] = true; merged.push(s); }
+  });
+  (localData || []).forEach(function(s) {
+    var key = s.name + '|||' + s.grade + '|||' + s.date;
+    if (!seen[key]) { seen[key] = true; merged.push(s); }
+  });
+  return merged;
+}
+
 function listenToData(){
+  var localData = loadLocalData();
+  var statusEl = document.getElementById('syncStatus');
+
   db.collection(COLLECTION).orderBy('timestamp','desc').onSnapshot(function(snap){
-    allStudents = [];
+    var serverData = [];
     snap.forEach(function(doc){
       var d = doc.data();
       d.id = doc.id;
-      allStudents.push(d);
+      d.std = { vocab: d.vocab || 0, grammar: d.grammar || 0, speed: d.speed || 0, intuition: d.intuition || 0, express: d.express || 0, adapt: d.adapt || 0 };
+      if (typeof d.cogData === 'string') { try { d.cogData = JSON.parse(d.cogData); } catch(_) { d.cogData = []; } }
+      if (typeof d.stylePrefs === 'string') { try { d.stylePrefs = JSON.parse(d.stylePrefs); } catch(_) { d.stylePrefs = []; } }
+      serverData.push(d);
     });
+    // ALWAYS merge with local data
+    allStudents = mergeData(serverData, localData);
+    if (statusEl) statusEl.innerHTML = '✅ 云端连接正常 · ' + allStudents.length + ' 条记录';
+    if (statusEl) statusEl.style.color = '#16A34A';
     render();
   }, function(err){
-    console.error('Firestore listen error:', err);
-    // Fallback to localStorage
-    allStudents = JSON.parse(localStorage.getItem('gt_eng_diag_students')||'[]');
+    console.error('Firestore error:', err);
+    // Firebase failed — use localStorage only
+    allStudents = localData;
+    if (statusEl) statusEl.innerHTML = '⚠️ 云端连接失败，显示本地数据 · ' + allStudents.length + ' 条记录';
+    if (statusEl) statusEl.style.color = '#FF8C42';
     render();
   });
 }
