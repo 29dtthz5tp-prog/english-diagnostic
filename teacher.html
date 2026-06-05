@@ -257,51 +257,20 @@ async function cloudLoad() {
 let allStudents = [];
 
 // ==================== DATA ====================
-function loadData() {
-  // 1. Load from shared localStorage
-  var raw = localStorage.getItem(STORAGE_KEY);
-  allStudents = [];
-  if (raw) {
-    try { allStudents = JSON.parse(raw); } catch(_) { allStudents = []; }
-  }
+async function loadData() {
+  document.querySelector('.sub').textContent = '⏳ 加载中...';
+  allStudents = await cloudLoad();
+  document.querySelector('.sub').textContent = '共 ' + allStudents.length + ' 条记录 · 云端同步';
 
-  // 2. Check URL for imported data (from student share link)
   var params = new URLSearchParams(location.search);
   var importData = params.get('i');
   if (importData) {
-    try {
-      var decoded = JSON.parse(decodeURIComponent(escape(atob(importData))));
-      var isDup = allStudents.some(function(s) {
-        return s.name === decoded.name && s.grade === decoded.grade && s.timestamp === decoded.timestamp;
-      });
-      if (!isDup) {
-        allStudents.push(decoded);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(allStudents));
-        history.replaceState(null, '', location.pathname);
-      }
-    } catch(_) {}
+    var decoded = tryDecode(importData);
+    if (decoded) {
+      var dup = allStudents.some(function(s){return s.name===decoded.name&&s.timestamp===decoded.timestamp;});
+      if (!dup) { allStudents.push(normalizeRecord(decoded, allStudents.length)); localStorage.setItem(LOCAL_KEY, JSON.stringify(allStudents)); history.replaceState(null, '', location.pathname); }
+    }
   }
-
-  // Normalize all records
-  allStudents.forEach(function(s, i) {
-    if (!s.id) s.id = 90000 + i;
-    if (!s.vocab) { s.vocab = s.vocab || 0; s.grammar = s.grammar || 0; s.speed = s.speed || 0; s.intuition = s.intuition || 0; s.express = s.express || 0; s.adapt = s.adapt || 0; }
-    if (!s.inputScore) s.inputScore = 0;
-    if (!s.outputScore) s.outputScore = 0;
-    if (!s.gap) s.gap = s.gap || 0;
-    if (!s.date) s.date = s.timestamp ? s.timestamp.slice(0, 10) : '';
-    if (!s.typeId) s.typeId = s.type || '';
-    if (!s.typeName) s.typeName = s.type || '';
-    if (!s.typeIcon) s.typeIcon = '';
-    if (!s.weakKey) s.weakKey = '';
-    if (!s.strongKey) s.strongKey = '';
-    if (typeof s.cogData === 'string') { try { s.cogData = JSON.parse(s.cogData); } catch(_) { s.cogData = []; } }
-    if (!Array.isArray(s.cogData)) s.cogData = [];
-    if (typeof s.stylePrefs === 'string') { try { s.stylePrefs = JSON.parse(s.stylePrefs); } catch(_) { s.stylePrefs = []; } }
-    if (!Array.isArray(s.stylePrefs)) s.stylePrefs = [];
-    s.std = { vocab: s.vocab || 0, grammar: s.grammar || 0, speed: s.speed || 0, intuition: s.intuition || 0, express: s.express || 0, adapt: s.adapt || 0 };
-  });
-
   render();
 }
 
