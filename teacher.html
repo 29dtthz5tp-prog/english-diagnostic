@@ -242,8 +242,15 @@ async function cloudLoad() {
       if (Array.isArray(files)) {
         for (var i = 0; i < files.length; i++) {
           try {
-            var content = files[i].content;
-            if (content) { var json = decodeURIComponent(escape(atob(content.replace(/\n/g,'')))); var obj = JSON.parse(json); obj = normalizeRecord(obj, all.length); var k = obj.name+'|||'+obj.grade+'|||'+obj.timestamp; if (!seen[k]) { seen[k]=true; all.push(obj); } }
+            var f = files[i];
+            if (!f.name || f.name === '.gitkeep') continue;
+            var rawResp = await fetch(f.download_url);
+            if (rawResp.ok) {
+              var obj = JSON.parse(await rawResp.text());
+              obj = normalizeRecord(obj, all.length);
+              var k = obj.name+'|||'+obj.grade+'|||'+obj.timestamp;
+              if (!seen[k]) { seen[k]=true; all.push(obj); }
+            }
           } catch(e) {}
         }
       }
