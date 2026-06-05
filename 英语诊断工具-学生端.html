@@ -277,18 +277,30 @@ async function cloudSave(rec) {
   var dup = local.some(function(s){return s.name===rec.name&&s.timestamp===rec.timestamp;});
   if (!dup) { local.push(rec); localStorage.setItem(LOCAL_KEY, JSON.stringify(local)); }
 
-  // Try GitHub cloud
-  var fname = (rec.timestamp||'').replace(/[:.]/g,'-') + '_' + encodeURIComponent(rec.name||'unknown') + '.json';
-  var content = btoa(unescape(encodeURIComponent(JSON.stringify(rec))));
+  // Append to GitHub data.json
   try {
-    var resp = await fetch(GH_API + fname, {
+    // 1. Get current data.json
+    var sha = '';
+    var current = [];
+    var resp = await fetch('https://api.github.com/repos/29dtthz5tp-prog/english-diagnostic/contents/data.json', {
+      headers: { 'Authorization': 'token ' + GH_TOKEN }
+    });
+    if (resp.ok) {
+      var info = await resp.json();
+      sha = info.sha;
+      try { current = JSON.parse(decodeURIComponent(escape(atob(info.content.replace(/\n/g,''))))); } catch(e) {}
+    }
+    // 2. Append new record
+    current.push(rec);
+    // 3. Write back
+    var content = btoa(unescape(encodeURIComponent(JSON.stringify(current))));
+    var putResp = await fetch('https://api.github.com/repos/29dtthz5tp-prog/english-diagnostic/contents/data.json', {
       method: 'PUT',
       headers: { 'Authorization': 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'Diagnosis: ' + (rec.name||''), content: content })
+      body: JSON.stringify({ message: 'Add: ' + (rec.name||''), content: content, sha: sha })
     });
-    if (resp.ok) { console.log('☁️ Saved to GitHub'); return {ok:true, cloud:true}; }
-    var err = await resp.json();
-    throw new Error(err.message || 'API error');
+    if (putResp.ok) { console.log('☁️ Saved to GitHub data.json'); return {ok:true, cloud:true}; }
+    throw new Error('PUT failed');
   } catch(e) {
     console.warn('GitHub save failed, local only:', e.message);
     return {ok:true, cloud:false};

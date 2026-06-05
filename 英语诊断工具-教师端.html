@@ -235,25 +235,23 @@ async function cloudLoad() {
   var all = []; var seen = {};
   var local = []; try { local = JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); } catch(_) {}
   local.forEach(function(s) { s = normalizeRecord(s, all.length); var k = s.name+'|||'+s.grade+'|||'+s.timestamp; if (!seen[k]) { seen[k]=true; all.push(s); } });
+  // Fetch from raw.githubusercontent.com (no auth needed, CORS supported)
   try {
-    var resp = await fetch(GH_API, { headers: { 'Authorization': 'token ' + GH_TOKEN } });
+    var resp = await fetch('https://raw.githubusercontent.com/29dtthz5tp-prog/english-diagnostic/main/data.json');
     if (resp.ok) {
-      var files = await resp.json();
-      if (Array.isArray(files)) {
-        for (var i = 0; i < files.length; i++) {
-          try {
-            var f = files[i];
-            if (!f.name || f.name === '.gitkeep') continue;
-            var rawResp = await fetch(f.download_url);
-            if (rawResp.ok) {
-              var obj = JSON.parse(await rawResp.text());
-              obj = normalizeRecord(obj, all.length);
-              var k = obj.name+'|||'+obj.grade+'|||'+obj.timestamp;
-              if (!seen[k]) { seen[k]=true; all.push(obj); }
-            }
-          } catch(e) {}
-        }
+      var cloudData = await resp.json();
+      if (Array.isArray(cloudData)) {
+        cloudData.forEach(function(obj) {
+          obj = normalizeRecord(obj, all.length);
+          var k = obj.name+'|||'+obj.grade+'|||'+obj.timestamp;
+          if (!seen[k]) { seen[k]=true; all.push(obj); }
+        });
       }
+    }
+  } catch(e) { console.warn('Cloud load failed:', e); }
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
+  return all;
+}
     }
   } catch(e) { console.warn('GitHub load failed:', e); }
   localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
