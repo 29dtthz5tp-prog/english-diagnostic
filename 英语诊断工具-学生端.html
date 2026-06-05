@@ -266,18 +266,27 @@ body{
 </div><!-- wrap -->
 
 <script>
-// ==================== FIREBASE ====================
-const firebaseConfig = {
-  apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
-  authDomain: "gaotu-diagnostic.firebaseapp.com",
-  projectId: "gaotu-diagnostic",
-  storageBucket: "gaotu-diagnostic.firebasestorage.app",
-  messagingSenderId: "109824619609",
-  appId: "1:109824619609:web:41f749de0021de4ad26d48"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const COLLECTION = 'students';
+// ==================== FIREBASE (with CDN-fail fallback) ====================
+var db = null;
+var COLLECTION = 'students';
+var firebaseAvailable = false;
+
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
+      authDomain: "gaotu-diagnostic.firebaseapp.com",
+      projectId: "gaotu-diagnostic",
+      storageBucket: "gaotu-diagnostic.firebasestorage.app",
+      messagingSenderId: "109824619609",
+      appId: "1:109824619609:web:41f749de0021de4ad26d48"
+    });
+    db = firebase.firestore();
+    firebaseAvailable = true;
+  }
+} catch(e) {
+  console.warn('Firebase init failed, using localStorage only:', e.message);
+}
 // =================================================
 
 // ==================== STATE ====================
@@ -841,6 +850,14 @@ function closingMessage(type,std){
 // ==================== STORAGE (Google Apps Script) ====================
 
 async function getPreviousRecord(){
+  if (!firebaseAvailable || !db) {
+    // Firebase not available, use localStorage only
+    try {
+      const students = JSON.parse(localStorage.getItem('gt_eng_diag_students') || '[]');
+      const mine = students.filter(s => s.name === stuName && s.grade === stuGrade);
+      return mine.length > 0 ? mine[mine.length - 1] : null;
+    } catch(_) { return null; }
+  }
   try {
     const snap = await db.collection(COLLECTION)
       .where('name','==',stuName)
@@ -891,6 +908,11 @@ async function saveToStorage(std,inputScore,outputScore,gap,type){
   var dup = localStudents.some(function(s){ return s.name===data.name && s.grade===data.grade && s.date===data.date; });
   if (!dup) { localStudents.push(data); localStorage.setItem('gt_eng_diag_students', JSON.stringify(localStudents)); }
 
+  if (!firebaseAvailable || !db) {
+    console.log('📦 Saved to localStorage (Firebase not available)');
+    return { success: false, local: true, error: 'Firebase not available' };
+  }
+
   try {
     // Write to Firestore (teacher listens here!)
     await db.collection(COLLECTION).add(data);
@@ -909,6 +931,7 @@ async function saveToStorage(std,inputScore,outputScore,gap,type){
 
 // Retry pending submissions on page load
 (async function flushPending(){
+  if (!firebaseAvailable || !db) return;
   const pqKey='gt_eng_diag_pending';
   var pending = [];
   try { pending = JSON.parse(localStorage.getItem(pqKey) || '[]'); } catch(_) {}

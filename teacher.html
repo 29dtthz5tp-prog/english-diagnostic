@@ -211,18 +211,28 @@ footer .gt{color:var(--r);font-weight:600}
 <footer><span class="gt">高途</span> · 教师后台 · 学生画像数据自动同步</footer>
 
 <script>
-// ==================== FIREBASE ====================
-const firebaseConfig = {
-  apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
-  authDomain: "gaotu-diagnostic.firebaseapp.com",
-  projectId: "gaotu-diagnostic",
-  storageBucket: "gaotu-diagnostic.firebasestorage.app",
-  messagingSenderId: "109824619609",
-  appId: "1:109824619609:web:41f749de0021de4ad26d48"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const COLLECTION = 'students';
+// ==================== FIREBASE (with CDN-fail fallback) ====================
+var db = null;
+var COLLECTION = 'students';
+var firebaseAvailable = false;
+
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey: "AIzaSyCnnQmSs3TsnmuoTPOUBx-Sf4eucNVRLTQ",
+      authDomain: "gaotu-diagnostic.firebaseapp.com",
+      projectId: "gaotu-diagnostic",
+      storageBucket: "gaotu-diagnostic.firebasestorage.app",
+      messagingSenderId: "109824619609",
+      appId: "1:109824619609:web:41f749de0021de4ad26d48"
+    });
+    db = firebase.firestore();
+    firebaseAvailable = true;
+  }
+} catch(e) {
+  console.warn('Firebase init failed, using localStorage only:', e.message);
+}
+// =================================================
 let allStudents = [];
 
 // ==================== DATA ====================
@@ -273,6 +283,14 @@ function mergeData(serverData, localData) {
 function listenToData(){
   var localData = loadLocalData();
   var statusEl = document.getElementById('syncStatus');
+
+  if (!firebaseAvailable || !db) {
+    // Firebase not available — use localStorage only
+    allStudents = localData;
+    if (statusEl) { statusEl.innerHTML = '💾 离线模式 · 本机数据 · ' + allStudents.length + ' 条记录'; statusEl.style.color = '#FF8C42'; }
+    render();
+    return;
+  }
 
   db.collection(COLLECTION).orderBy('timestamp','desc').onSnapshot(function(snap){
     var serverData = [];
