@@ -714,6 +714,9 @@ async function showResults(){
   }
   h+='</div>'; // close r-card
 
+  document.getElementById('reportWrap').innerHTML = h;
+  switchScr('scr-results');
+
 // ---- Dimension-level comments ----
 function dimComment(k,v){
   const m={
