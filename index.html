@@ -692,6 +692,12 @@ var questions = questionsByGrade['小升初衔接'];
 // Section break indices (questions index where cheer should appear)
 const cheerPoints=[3,9,17]; // After scene(3q), knowledge(6q+cog), self(8q)
 
+const cogQ={
+  q:'🤔 你刚才是怎么选出答案的？',
+  o:['我记得规则或单词意思','读起来顺口，感觉对了','排除了不太像的选项','不太确定，猜的~'],
+  types:['rule','intuition','strategy','guess']
+};
+
 // ==================== QUIZ ENGINE ====================
 function start(){
   stuName=document.getElementById('stuName').value.trim();
