@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语诊断题目总览 · 四套年级</title>
+<style>
+:root{--g:#00C48C;--gd:#009A6C;--gl:#E8FAF4;--o:#FF6B35;--gy:#f9fafb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--gy);color:#1f2937;line-height:1.7}
+.header{background:linear-gradient(135deg,var(--gd),var(--g));color:#fff;padding:32px 20px;text-align:center}
+.header h1{font-size:1.6em;margin-bottom:4px}
+.header p{opacity:.85;font-size:.9em}
+.nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:16px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
+.nav button{padding:8px 20px;border-radius:20px;border:2px solid #e5e7eb;background:#fff;cursor:pointer;font-size:.85em;font-weight:600;font-family:inherit;transition:all .2s}
+.nav button:hover,.nav button.active{background:var(--g);color:#fff;border-color:var(--g)}
+.container{max-width:900px;margin:0 auto;padding:20px}
+.grade-section{margin-bottom:40px;display:none}
+.grade-section.active{display:block}
+.grade-title{font-size:1.3em;font-weight:700;color:var(--gd);margin-bottom:6px;padding-bottom:8px;border-bottom:3px solid var(--g)}
+.grade-desc{color:#6b7280;font-size:.85em;margin-bottom:20px}
+.q-card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px 24px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.q-card:hover{border-color:var(--g)}
+.q-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.q-type{display:inline-block;padding:3px 10px;border-radius:8px;font-size:.75em;font-weight:700;color:#fff}
+.q-type.scene{background:#FF6B35}
+.q-type.know{background:#3B7CFF}
+.q-type.self{background:#7C3AED}
+.q-type.pref{background:#DB2777}
+.q-idx{font-size:.8em;color:#9ca3af}
+.q-text{font-size:1.05em;font-weight:600;margin-bottom:14px;line-height:1.6}
+.q-opts{margin:10px 0;padding:0}
+.q-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;margin:4px 0;background:#f9fafb;border-radius:8px;font-size:.88em}
+.q-opt .letter{width:26px;height:26px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8em;flex-shrink:0}
+.q-opt.correct{background:#D1FAE5;border:1px solid #A7F3D0}
+.q-opt.correct .letter{background:var(--g);color:#fff}
+.q-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:.78em;color:#6b7280}
+.q-meta span{background:#f3f4f6;padding:2px 8px;border-radius:6px}
+.section-header{background:var(--gl);padding:10px 16px;border-radius:8px;margin:20px 0 12px;font-weight:700;color:var(--gd);font-size:.95em}
+footer{text-align:center;padding:30px;color:#9ca3af;font-size:.8em}
+@media print{.nav{display:none}.grade-section{display:block!important;page-break-after:always}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 英语诊断题目总览</h1>
+  <p>四套年级专属题目 · 共 76 题</p>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showGrade('junior')">🎒 小升初衔接</button>
+  <button onclick="showGrade('g7')">🌱 初一</button>
+  <button onclick="showGrade('g8')">🛠️ 初二</button>
+  <button onclick="showGrade('g9')">🎯 初三</button>
+</div>
+
+<div class="container" id="content"></div>
+<footer>🪞 英语学习镜子 · 教师后台可查看所有数据</footer>
+
+<script>
+const typeNames={scene:'情景判断',know:'知识点',self:'自我评估',pref:'学习偏好'};
+const typeColors={scene:'#FF6B35',know:'#3B7CFF',self:'#7C3AED',pref:'#DB2777'};
+const dimNames={vocab:'词汇',grammar:'语法',speed:'速度',intuition:'语感',express:'表达',adapt:'适应'};
+
+const grades = {
+  junior: {
+    title: '🎒 小升初衔接',
+    desc: '核心：习惯养成 + 基础摸底。重点询问孩子的英语学习习惯、对待困难的态度、基础词汇语法掌握情况、以及对英语的兴趣和信心。',
+    questions: [
+      {id:1,s:'scene',sn:'聊聊你的英语习惯',q:'小学英语课上，老师让大家读单词或课文时，你通常？',o:['大声跟着读，不害怕读错','小声跟着读，怕读错被笑','只听不读','发呆，等别人读完'],sc:[{express:3},{express:1,adapt:-1},{express:-1},{express:-2}]},
+      {id:2,s:'scene',q:'做英语作业遇到不会的题，你通常会？',o:['自己查书或笔记，想办法弄懂','问爸爸妈妈或同学','空着不做','随便猜一个答案'],sc:[{adapt:2},{adapt:1,speed:1},{adapt:-2,express:-1},{adapt:-1}]},
+      {id:3,s:'scene',q:'你平时会主动接触英语吗（看动画、听歌、读绘本等）？',o:['经常！我很喜欢英语','有时候，偶尔看看','很少，只有上课才学','从不，我对英语没兴趣'],sc:[{intuition:3,express:1},{intuition:1},{intuition:-1},{express:-2,intuition:-2}]},
+      {id:4,s:'know',sn:'单词小达人',q:'哪个词和"big"意思最接近？',o:['small（小的）','large（大的）','fast（快的）','good（好的）'],correct:1,sc:[{vocab:-1},{vocab:3},{vocab:-1},{vocab:-1}]},
+      {id:5,s:'know',q:'"He ___ a student." 空格里应该填？',o:['am','is','are','be'],correct:1,sc:[{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-2,intuition:-1}]},
+      {id:6,s:'know',q:'哪个句子是对的？',o:['I like apples.','I likes apples.','I liking apples.','I is like apples.'],correct:0,sc:[{grammar:2,intuition:1},{grammar:-1,intuition:-1},{grammar:-1},{grammar:-2,intuition:-1}]},
+      {id:7,s:'know',q:'英语中有多少个字母？',o:['24个','26个','28个','30个'],correct:1,sc:[{vocab:-1},{vocab:2},{vocab:-1},{vocab:-1}]},
+      {id:8,s:'know',q:'下面哪个词是颜色？',o:['book','run','blue','happy'],correct:2,sc:[{vocab:-1,intuition:-1},{vocab:-1},{vocab:2,intuition:1},{vocab:-1}]},
+      {id:9,s:'know',sn:'阅读小高手',q:'读一读：I am Lily. I am 11 years old. I have a pet dog. Its name is Coco. I like to play with Coco after school. — Lily的宠物是什么？',o:['一只猫','一只狗','一条鱼','没有宠物'],correct:1,sc:[{speed:-1},{speed:3},{speed:-1},{speed:-1}]},
+      {id:10,s:'self',sn:'你觉得自己怎么样',q:'你觉得自己喜欢英语吗？',o:['很不喜欢','不太喜欢','一般般','比较喜欢','非常喜欢！'],likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+      {id:11,s:'self',q:'你觉得小学英语学得扎实吗？',o:['很不扎实','不太扎实','一般般','比较扎实','非常扎实'],likert:true,dim:'vocab',lm:[-2,-1,0,1,2]},
+      {id:12,s:'self',q:'遇到不认识的英语单词，你会主动去问或查吗？',o:['从来不会','很少会','有时候会','经常会','每次都会'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:13,s:'self',q:'你相信自己能把英语学好吗？',o:['完全不信','不太信','一般般','比较信','当然！我一定行！'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:16,s:'self',q:'你觉得记单词难吗？',o:['超级难','比较难','一般般','不算难','一点都不难'],likert:true,dim:'vocab',lm:[-2,-1,0,1,2]},
+      {id:17,s:'self',q:'写英语句子时，你会注意大小写和标点吗？',o:['完全不会','很少注意','有时候注意','经常会','每次都会'],likert:true,dim:'grammar',lm:[-2,-1,0,1,2]},
+      {id:18,s:'self',q:'读简单的英语小故事，你觉得吃力吗？',o:['非常吃力','比较吃力','一般般','不太吃力','很轻松'],likert:true,dim:'speed',lm:[-2,-1,0,1,2]},
+      {id:19,s:'self',q:'听到一句英语，你能大概感觉它"顺不顺"吗？',o:['完全感觉不到','很少能感觉到','有时候能','经常能','一下子就能！'],likert:true,dim:'intuition',lm:[-2,-1,0,1,2]},
+      {id:14,s:'pref',sn:'你喜欢怎么学',q:'你觉得哪种方式学英语最有趣？',o:['看英语动画片或听英语歌','做游戏、比赛','跟同学一起读、对话','自己安静看英语绘本'],styles:['听觉型','竞争型','社交型','独立型']},
+      {id:15,s:'pref',q:'老师布置英语作业，你最喜欢哪种？',o:['抄写单词和句子','读课文录音发给老师','画英语手抄报或做手工','用英语跟家人说几句话'],styles:['动觉型','听觉型','图像联想型','语境型']}
+    ]
+  },
+  g7: {
+    title: '🌱 初一',
+    desc: '核心：适应初中 + 学习方法。重点询问小学到初中的过渡适应情况、每日学习时间投入、是否形成了自己的学习方法、以及各项基础能力的自我认知。',
+    questions: [
+      {id:1,s:'scene',sn:'聊聊你的英语习惯',q:'进入初中后英语变难了，你通常会？',o:['按老师要求一步步来，不急','有点慌，怕跟不上','无所谓，跟小学一样学','主动找方法，想尽快适应'],sc:[{adapt:1,speed:1},{adapt:-1,express:-1},{adapt:-1},{adapt:2,speed:2}]},
+      {id:2,s:'scene',q:'英语老师布置每天背10个新单词，你会？',o:['坚持每天都背完','大部分时间能完成','想起来就背，想不起来就不背','觉得太多了，不想背'],sc:[{vocab:3,express:1},{vocab:1},{vocab:-1},{vocab:-2,express:-2}]},
+      {id:3,s:'scene',q:'读英语短文遇到生词，你现在会？',o:['根据上下文猜，继续往下读','立刻查字典，不放过一个词','跳过生词，只看懂的','放弃不看了'],sc:[{adapt:2,speed:2},{speed:-1,adapt:-1},{speed:1},{adapt:-2,express:-2}]},
+      {id:4,s:'know',sn:'词汇挑战',q:'"There are many ___ in the classroom." 填哪个？',o:['student','studentes','students','studenties'],correct:2,sc:[{grammar:-1},{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-2}]},
+      {id:5,s:'know',q:'哪个词不是动词？',o:['run','beautiful','eat','play'],correct:1,sc:[{vocab:-1},{vocab:3},{vocab:-1},{vocab:-1}]},
+      {id:6,s:'know',q:'"She ___ lunch at school every day." 填？',o:['have','has','had','having'],correct:1,sc:[{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-2}]},
+      {id:7,s:'know',q:'下面哪个是"图书馆"的英文？',o:['classroom','library','playground','office'],correct:1,sc:[{vocab:-1},{vocab:3},{vocab:-1},{vocab:-1}]},
+      {id:8,s:'know',q:'"I ___ to school by bus yesterday." 填？',o:['go','goes','went','going'],correct:2,sc:[{grammar:-1},{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-2}]},
+      {id:9,s:'know',sn:'阅读理解',q:'读一读：David is a middle school student. Every morning he reads English for 20 minutes. He thinks it helps him remember words better. His English teacher often praises him in class. — David为什么被老师表扬？',o:['因为他很聪明','因为他每天坚持读英语','因为他作业写得好','因为他是班长'],correct:1,sc:[{speed:-1},{speed:3},{speed:-1},{speed:-1}]},
+      {id:10,s:'self',sn:'你觉得自己怎么样',q:'跟小学比，你觉得初中英语难吗？',o:['超级难！完全不一样','比较难，但还能应付','差不多','不太难','很简单'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:11,s:'self',q:'你每天花多长时间学英语（不含上课）？',o:['几乎不花时间','不到15分钟','15-30分钟','30-60分钟','一小时以上'],likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+      {id:12,s:'self',q:'你有自己的单词记忆方法吗（联想法、词根法等）？',o:['完全没方法','基本死记硬背','偶尔用点方法','有固定的方法','方法很灵活多样'],likert:true,dim:'vocab',lm:[-2,-1,0,1,2]},
+      {id:13,s:'self',q:'语法规则你能理解多少？',o:['大部分都听不懂','只能理解最简单的','能理解一半左右','大部分能理解','全部都能理解'],likert:true,dim:'grammar',lm:[-2,-1,0,1,2]},
+      {id:16,s:'self',q:'读一段80词的英文短文，你需要多长时间？',o:['完全读不下来','需要反复读很久','3-5分钟','1-3分钟','不到1分钟'],likert:true,dim:'speed',lm:[-2,-1,0,1,2]},
+      {id:17,s:'self',q:'做英语题时靠"感觉"能选对的概率？',o:['几乎选不对','偶尔能蒙对','一半左右能对','大部分时候能对','几乎每次都对'],likert:true,dim:'intuition',lm:[-2,-1,0,1,2]},
+      {id:18,s:'self',q:'你敢用英语跟同学或老师说几句吗？',o:['完全不敢','不太敢','偶尔敢说一两句','比较敢','很敢！主动说'],likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+      {id:19,s:'self',q:'遇到读不懂的英语材料，你会想办法弄懂吗？',o:['直接放弃','等老师讲','问同学或查字典','自己先猜再查','有固定方法解决'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:14,s:'pref',sn:'你喜欢怎么学',q:'哪种方式帮你记单词最有效？',o:['边抄边读，多写几遍','按发音规律拼写','放到句子里理解记忆','用APP或卡片反复刷'],styles:['动觉型','听觉型','语境型','竞争型']},
+      {id:15,s:'pref',q:'英语课上你最喜欢哪种活动？',o:['小组对话、角色扮演','听老师讲、做笔记','自己阅读或写作','游戏竞赛、抢答'],styles:['社交型','结构型','独立型','竞争型']}
+    ]
+  },
+  g8: {
+    title: '🛠️ 初二',
+    desc: '核心：方法策略 + 能力诊断。重点询问阅读策略、自我诊断能力、主动输出意愿、以及词汇/语法/速度等各项能力的方法意识和自我定位。',
+    questions: [
+      {id:1,s:'scene',sn:'聊聊你的学习方法',q:'初二英语阅读量明显增加，你通常怎么应对？',o:['每天坚持读一点，日积月累','考试前集中刷阅读题','只完成老师布置的','能拖就拖，不太想读'],sc:[{speed:3,adapt:1},{speed:1},{speed:-1},{speed:-2,express:-2}]},
+      {id:2,s:'scene',q:'发现自己英语某个模块明显偏弱（比如完形填空总错），你会？',o:['专门找这个模块的题集中突破','等老师讲，自己不额外做','各种题型都做，不特别关注','觉得没关系，其他模块补回来'],sc:[{adapt:2,grammar:1},{adapt:-1},{adapt:1},{adapt:-2}]},
+      {id:3,s:'scene',q:'你平时会主动用英语吗（写日记、跟AI对话、看英文视频等）？',o:['经常，我觉得用出来才记得牢','偶尔会，看心情','只有老师要求才做','从不，我觉得没用'],sc:[{express:3,intuition:2},{express:1},{express:-1},{express:-3,intuition:-1}]},
+      {id:4,s:'know',sn:'词汇挑战',q:'哪个词是"important"的近义词？',o:['interesting','necessary','difficult','beautiful'],correct:1,sc:[{vocab:-1},{vocab:3},{vocab:-1},{vocab:-1}]},
+      {id:5,s:'know',q:'"If it ___ tomorrow, we will stay at home." 填？',o:['rain','rains','will rain','rained'],correct:1,sc:[{grammar:-2,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-1}]},
+      {id:6,s:'know',q:'下面哪个句子是被动语态？',o:['The book wrote by him.','The book was written by him.','The book is write by him.','He was wrote the book.'],correct:1,sc:[{grammar:-1,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-2}]},
+      {id:7,s:'know',q:'"I have ___ been to Beijing." 填哪个表示"已经去过"？',o:['yet','already','ever','never'],correct:1,sc:[{grammar:-1,intuition:-1},{grammar:3},{vocab:-1,intuition:-1},{grammar:-1}]},
+      {id:8,s:'know',q:'哪个句子读起来最自然？',o:['She is much more taller than me.','She is much taller than me.','She is more tall than me.','She is much more tall than me.'],correct:1,sc:[{intuition:-1},{intuition:3},{grammar:-1,intuition:-1},{grammar:-1}]},
+      {id:9,s:'know',sn:'阅读理解',q:'读一读：Many students find English grammar difficult. However, research shows that reading extensively is more effective than memorizing rules. When you read a lot, your brain naturally picks up grammar patterns. — 作者认为学语法最好的方法是什么？',o:['背诵语法规则','大量阅读','做语法练习题','上课认真听讲'],correct:1,sc:[{speed:-1},{speed:3},{speed:-1},{speed:-1}]},
+      {id:10,s:'self',sn:'你觉得自己怎么样',q:'你觉得自己的英语学习方法有效吗？',o:['完全没方法，很迷茫','有一些方法，但效果不好','方法还行，但想改进','方法比较好，效果不错','方法很好，效率很高'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:11,s:'self',q:'做阅读理解时，你能理解文章大意吗？',o:['完全看不懂','只能看懂零星单词','能懂一半左右','基本能懂','完全能懂'],likert:true,dim:'speed',lm:[-2,-1,0,1,2]},
+      {id:12,s:'self',q:'写作时你能用对时态吗（过去式、现在完成时等）？',o:['完全不会用','经常用错','简单时态还行','大部分能用对','能用对且自然'],likert:true,dim:'grammar',lm:[-2,-1,0,1,2]},
+      {id:13,s:'self',q:'你觉得自己的词汇量在班里大概什么水平？',o:['远远落后','中下','中等','中上','名列前茅'],likert:true,dim:'vocab',lm:[-2,-1,0,1,2]},
+      {id:16,s:'self',q:'不看选项，凭语感判断一道完形填空该填什么，你？',o:['完全做不到','偶尔能蒙对','一半概率','经常能对','基本每次都对'],likert:true,dim:'intuition',lm:[-2,-1,0,1,2]},
+      {id:17,s:'self',q:'你愿意用英语表达自己的观点吗（口头或书面）？',o:['完全不愿意','不太愿意','看情况','比较愿意','非常愿意'],likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+      {id:18,s:'self',q:'遇到不认识的词，你能根据上下文猜出大概意思吗？',o:['完全不能','很少能','有时候能','经常能','几乎每次都能'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:19,s:'self',q:'初二英语整体难度提升，你适应得如何？',o:['完全跟不上','有点吃力','差不多','适应得不错','完全没问题'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:14,s:'pref',sn:'你喜欢怎么学',q:'如果让你自选一种方式提升英语，你会选？',o:['大量刷题，以练代学','看英文电影/美剧，沉浸式','精读课文，逐句分析','找语伴或老师练习对话'],styles:['竞争型','听觉型','结构型','社交型']},
+      {id:15,s:'pref',q:'哪种反馈最能激励你学英语？',o:['考试分数提高','老师/家长当众表扬','自己能看懂一篇英文文章','能和外国人简单交流'],styles:['竞争型','社交型','独立型','语境型']}
+    ]
+  },
+  g9: {
+    title: '🎯 初三',
+    desc: '核心：应试准备 + 短板定位。重点询问备考心态、错题应对策略、复习规划、各考试模块（听力/语法/阅读/写作）的把握程度、以及词汇量和时间管理的自评。',
+    questions: [
+      {id:1,s:'scene',sn:'聊聊你的备考状态',q:'马上要中考了，你对英语这门课的心态是？',o:['信心满满，这是我的强项','还行，正常复习就好','有点焦虑，怕考不好','很慌，不知道该从哪开始'],sc:[{express:3,adapt:1},{express:1},{express:-1,adapt:-1},{express:-3,adapt:-2}]},
+      {id:2,s:'scene',q:'做模拟卷时发现完形填空或阅读错了很多，你会？',o:['冷静分析错因，针对性补','把所有错题重做一遍','心情很糟，影响后面的复习','不管它，继续做下一套卷子'],sc:[{adapt:3},{speed:-1,adapt:1},{express:-2,adapt:-1},{adapt:-2}]},
+      {id:3,s:'scene',q:'距离中考还有两个月，你怎么安排英语复习？',o:['制定了详细的周计划，按模块复习','每天做一套卷子，以量取胜','跟着老师走，自己不额外安排','顺其自然，不太主动复习'],sc:[{adapt:2,speed:1},{speed:2,adapt:-1},{adapt:-1},{express:-2,speed:-2}]},
+      {id:4,s:'know',sn:'中考词汇',q:'"The scientist made an important ___ to the field." 填？',o:['contribution','suggestion','information','education'],correct:0,sc:[{vocab:3},{vocab:-1},{vocab:-1},{vocab:-1}]},
+      {id:5,s:'know',q:'"Not only my parents but also my sister ___ going to the concert." 填？',o:['are','is','were','have been'],correct:1,sc:[{grammar:-2,intuition:-1},{grammar:3,intuition:1},{grammar:-1},{grammar:-1}]},
+      {id:6,s:'know',q:'"I wish I ___ harder when I was in Grade 8." 填？',o:['study','studied','had studied','have studied'],correct:2,sc:[{grammar:-2,intuition:-1},{grammar:-1},{grammar:3,intuition:1},{grammar:-1}]},
+      {id:7,s:'know',q:'哪个词的用法跟其他三个不同？',o:['information','advice','suggestion','furniture'],correct:2,sc:[{vocab:-1},{vocab:-1},{vocab:3,intuition:1},{intuition:-1}]},
+      {id:8,s:'know',q:'"It is no use ___ over spilt milk." 谚语填空？',o:['cry','crying','cried','to cry'],correct:1,sc:[{intuition:-1},{intuition:3},{grammar:-1},{grammar:-1,intuition:-1}]},
+      {id:9,s:'know',sn:'阅读推断',q:'读一读："I used to hate English," said Li Hua. "But then I started watching English videos about topics I love — basketball and science. Slowly I found myself understanding more and more." — 李华的转变主要是因为什么？',o:['报了英语补习班','把英语跟自己的兴趣结合起来','遇到了好的英语老师','出国了一段时间'],correct:1,sc:[{speed:-1},{speed:3},{speed:-1},{speed:-1}]},
+      {id:10,s:'self',sn:'中考各模块把握度',q:'中考英语听力，你觉得自己能拿多少分？',o:['拿不到一半','勉强及格','中等偏上','接近满分','每次满分'],likert:true,dim:'intuition',lm:[-2,-1,0,1,2]},
+      {id:11,s:'self',q:'单选/语法填空这类纯语法题，你有把握吗？',o:['很多都不会','会一部分，经常错','对一半以上','大部分都对','基本全对'],likert:true,dim:'grammar',lm:[-2,-1,0,1,2]},
+      {id:12,s:'self',q:'完形填空和阅读理解，你最大的问题是什么？',o:['生词太多看不懂','速度太慢做不完','逻辑推断不会','细节题总是漏掉','没什么大问题'],likert:true,dim:'speed',lm:[-2,-1,0,1,2]},
+      {id:13,s:'self',q:'英语写作（15-20分题），你一般能拿多少？',o:['5分以下','6-10分','10-13分','13-16分','17分以上'],likert:true,dim:'express',lm:[-2,-1,0,1,2]},
+      {id:16,s:'self',q:'中考要求的词汇量，你掌握了多少？',o:['不到一半','一半左右','七八成','基本掌握','全部掌握'],likert:true,dim:'vocab',lm:[-2,-1,0,1,2]},
+      {id:17,s:'self',q:'做整套模拟卷时，时间够用吗？',o:['完全不够','经常做不完','勉强做完','基本够用','绰绰有余'],likert:true,dim:'speed',lm:[-2,-1,0,1,2]},
+      {id:18,s:'self',q:'语篇填空或任务型阅读这类新题型，你能适应吗？',o:['完全懵，不知道怎么做','很吃力，经常做错','还行，慢慢能上手','比较适应','非常适应'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:19,s:'self',q:'总的来说，你对中考英语有信心吗？',o:['完全没有','不太有信心','一般般','比较有信心','非常有信心！'],likert:true,dim:'adapt',lm:[-2,-1,0,1,2]},
+      {id:14,s:'pref',sn:'你的复习偏好',q:'冲刺阶段，哪种复习方式对你最有效？',o:['刷真题+模拟卷，以考代练','分模块突破弱项','系统梳理知识点+做笔记','找老师一对一查漏补缺'],styles:['竞争型','结构型','独立型','社交型']},
+      {id:15,s:'pref',q:'考试前你最需要什么帮助？',o:['更多的练习题和模拟卷','解题技巧方法','心理疏导，缓解焦虑','针对弱项的个性化指导'],styles:['竞争型','动觉型','听觉型','独立型']}
+    ]
+  }
+};
+
+function renderGrade(key) {
+  var g = grades[key];
+  var html = '<div class="grade-title">' + g.title + '</div>';
+  html += '<div class="grade-desc">📌 ' + g.desc + '</div>';
+
+  var lastSection = '';
+  g.questions.forEach(function(q) {
+    if (q.sn && q.sn !== lastSection) {
+      html += '<div class="section-header">' + q.sn + '</div>';
+      lastSection = q.sn;
+    }
+    var labels = {scene:'情景',know:'知识',self:'自评',pref:'偏好'};
+    html += '<div class="q-card">';
+    html += '<div class="q-header"><span class="q-type ' + q.s + '">' + labels[q.s] + '</span><span class="q-idx">#' + q.id + '</span></div>';
+    html += '<div class="q-text">' + q.q + '</div>';
+    q.o.forEach(function(o, i) {
+      var cls = (q.correct === i) ? ' correct' : '';
+      html += '<div class="q-opt' + cls + '"><span class="letter">' + 'ABCD'[i] + '</span> ' + o + (q.correct===i?'  ✅': '') + '</div>';
+    });
+    html += '<div class="q-meta">';
+    if (q.likert) {
+      html += '<span>📊 Likert量表 · 维度: ' + dimNames[q.dim] + ' · 分值: [' + q.lm.join(',') + ']</span>';
+    }
+    if (q.sc) {
+      html += '<span>📏 计分: ';
+      q.sc.forEach(function(s, i) {
+        html += '选项' + 'ABCD'[i] + ' → ';
+        var parts = [];
+        Object.keys(s).forEach(function(k) { parts.push(dimNames[k] + (s[k]>0?'+':'') + s[k]); });
+        html += parts.join(', ') + (i < q.sc.length-1 ? ' | ' : '');
+      });
+      html += '</span>';
+    }
+    if (q.styles) {
+      html += '<span>🎨 风格标签: ' + q.styles.join(', ') + '</span>';
+    }
+    html += '</div></div>';
+  });
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function showGrade(key) {
+  document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('active'); });
+  event.target.classList.add('active');
+  renderGrade(key);
+}
+
+// init
+renderGrade('junior');
+</script>
+</body>
+</html>
